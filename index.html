@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// ── Supabase-Konfiguration ──────────────────────────────────
+// Trag hier deine Project URL und deinen Anon Key ein:
+const SUPABASE_URL = 'https://kspvyqitityieidefrwh.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_0iSu09X0thIjEBnW831g1A_dnLA74jG'
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg: #EEECE6;
+  --surface: #F7F5F0;
+  --surface2: #EDEAE3;
+  --card: #FFFFFF;
+  --card-hover: #FAFAF7;
+  --border: rgba(0,0,0,0.09);
+  --border-strong: rgba(0,0,0,0.16);
+  --accent: #059669;
+  --accent-h: #047857;
+  --accent-dim: rgba(5,150,105,0.09);
+  --text: #1A1A1E;
+  --text-2: #6B6B7A;
+  --text-3: #A4A4B0;
+  --green: #059669;
+  --green-dim: rgba(5,150,105,0.08);
+  --blue: #2563EB;
+  --blue-dim: rgba(37,99,235,0.08);
+  --purple: #7C3AED;
+  --purple-dim: rgba(124,58,237,0.08);
+  --red: #DC2626;
+  --red-dim: rgba(220,38,38,0.08);
+  --f-d: 'Syne', sans-serif;
+  --f-b: 'Plus Jakarta Sans', sans-serif;
+  --f-m: 'JetBrains Mono', monospace;
+  --r: 10px;
+  --r-s: 6px;
+  --hh: 52px;
+  --kh: 66px;
+  --sh: 28px;
+}
+
+html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:var(--f-b); font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:2px; }
+::-webkit-scrollbar-thumb:hover { background:rgba(0,0,0,0.22); }
+
+/* ─── HEADER ─── */
+.hdr {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  height:var(--hh);
+  background:rgba(247,245,240,0.96);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:16px; padding:0 18px;
+  box-shadow:0 1px 0 rgba(0,0,0,0.06);
+}
+.logo {
+  font-family:var(--f-d); font-weight:800; font-size:15px;
+  letter-spacing:-0.03em; color:var(--text);
+  display:flex; align-items:center; gap:6px; flex-shrink:0;
+}
+.logo-dot { width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px rgba(5,150,105,0.4); }
+.hnav { display:flex; gap:2px; }
+.hnav-btn {
+  font-family:var(--f-b); font-size:13px; font-weight:500;
+  color:var(--text-2); background:none; border:none;
+  padding:5px 11px; border-radius:var(--r-s); cursor:pointer;
+  transition:color .15s, background .15s;
+}
+.hnav-btn:hover { color:var(--text); background:rgba(0,0,0,0.06); }
+.hnav-btn.act { color:var(--accent); background:var(--accent-dim); }
+.hdr-r { margin-left:auto; display:flex; align-items:center; gap:6px; }
+
+/* ─── BUTTONS ─── */
+.btn {
+  font-family:var(--f-b); font-size:13px; font-weight:500;
+  border:none; border-radius:var(--r-s);
+  padding:6px 13px; cursor:pointer;
+  display:inline-flex; align-items:center; gap:5px;
+  transition:all .15s; white-space:nowrap;
+}
+.btn-g { background:rgba(0,0,0,0.05); color:var(--text-2); border:1px solid var(--border); }
+.btn-g:hover { background:rgba(0,0,0,0.09); color:var(--text); border-color:var(--border-strong); }
+.btn-p { background:var(--accent); color:#fff; }
+.btn-p:hover { background:var(--accent-h); box-shadow:0 2px 14px rgba(5,150,105,0.30); }
+.btn-sm { padding:4px 10px; font-size:12px; }
+.btn-danger { background:var(--red-dim); color:var(--red); border:1px solid rgba(197,48,48,0.15); }
+.btn-danger:hover { background:rgba(197,48,48,0.18); }
+.btn-ghost { background:none; border:none; color:var(--text-3); cursor:pointer; padding:4px; border-radius:4px; display:flex; align-items:center; transition:color .1s, background .1s; }
+.btn-ghost:hover { color:var(--text-2); background:rgba(0,0,0,0.06); }
+
+/* ─── SEARCH ─── */
+.srch { position:relative; flex:0 0 190px; }
+.srch-ico { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--text-3); pointer-events:none; }
+.srch-inp {
+  width:100%; background:rgba(0,0,0,0.05);
+  border:1px solid var(--border); border-radius:var(--r-s);
+  padding:5px 9px 5px 29px; color:var(--text);
+  font-family:var(--f-b); font-size:13px; outline:none;
+  transition:border-color .15s, background .15s;
+}
+.srch-inp::placeholder { color:var(--text-3); }
+.srch-inp:focus { border-color:var(--accent); background:#fff; }
+
+/* ─── KPI BAR ─── */
+.kpi-bar {
+  position:fixed; top:var(--hh); left:0; right:0; z-index:99;
+  height:var(--kh);
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex; overflow-x:auto;
+}
+.kpi-bar::-webkit-scrollbar { height:0; }
+.kpi-c {
+  flex:1; min-width:110px;
+  padding:10px 16px;
+  border-right:1px solid var(--border);
+  position:relative;
+}
+.kpi-c:last-child { border-right:none; }
+.kpi-lbl { font-size:10px; color:var(--text-3); text-transform:uppercase; letter-spacing:.07em; font-weight:600; margin-bottom:2px; }
+.kpi-val { font-family:var(--f-m); font-size:19px; font-weight:600; color:var(--text); line-height:1.1; }
+.kpi-sub { font-size:10px; color:var(--text-3); margin-top:1px; }
+.kpi-prog { position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--border); }
+.kpi-prog-b { height:100%; background:var(--accent); transition:width .5s ease; }
+.kpi-a .kpi-val { color:var(--accent); }
+.kpi-g .kpi-val { color:var(--green); }
+.kpi-b .kpi-val { color:var(--blue); }
+
+/* ─── MAIN ─── */
+.main {
+  position:fixed;
+  top:calc(var(--hh) + var(--kh));
+  left:0; right:0; bottom:0;
+  display:flex; overflow:hidden;
+}
+.view { display:none; }
+.view.act { display:flex; flex:1; overflow:hidden; }
+
+/* ─── KANBAN ─── */
+.kanban {
+  flex:1;
+  display:flex; gap:9px;
+  padding:12px 16px 16px;
+  overflow-x:auto; overflow-y:hidden;
+}
+.col {
+  flex:0 0 256px;
+  display:flex; flex-direction:column;
+  background:rgba(0,0,0,0.03);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  overflow:hidden; position:relative;
+}
+.col::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:var(--col-clr, var(--accent));
+}
+.col-hdr {
+  padding:9px 10px 8px;
+  display:flex; align-items:center; gap:6px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0; background:rgba(0,0,0,0.03);
+}
+.col-title { font-family:var(--f-d); font-weight:700; font-size:12px; letter-spacing:.01em; color:var(--text); flex:1; }
+.col-cnt {
+  font-family:var(--f-m); font-size:10px; font-weight:600;
+  color:var(--text-3); background:rgba(0,0,0,0.06);
+  padding:2px 6px; border-radius:20px;
+}
+.col-add {
+  width:20px; height:20px; background:none;
+  border:1px solid var(--border); border-radius:4px;
+  color:var(--text-3); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; line-height:1; flex-shrink:0;
+  transition:all .15s;
+}
+.col-add:hover { color:var(--accent); border-color:var(--accent); background:var(--accent-dim); }
+.col-body {
+  flex:1; overflow-y:auto;
+  padding:6px; display:flex; flex-direction:column; gap:5px;
+  min-height:60px;
+}
+.col-body.drag-over {
+  background:rgba(5,150,105,0.05);
+  outline:2px dashed rgba(5,150,105,0.3);
+  outline-offset:-4px; border-radius:5px;
+}
+
+/* ─── CARD (compact) ─── */
+.card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--r-s); padding:8px 10px;
+  cursor:grab; transition:transform .15s, box-shadow .15s, border-color .15s;
+  position:relative; user-select:none;
+  box-shadow:0 1px 3px rgba(0,0,0,0.07), 0 1px 1px rgba(0,0,0,0.04);
+}
+.card:hover {
+  border-color:var(--border-strong); background:var(--card-hover);
+  transform:translateY(-1px);
+  box-shadow:0 4px 16px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.06);
+}
+.card:active { cursor:grabbing; }
+.card.dragging { opacity:.3; transform:scale(0.97); cursor:grabbing; }
+.card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:6px; margin-bottom:5px; }
+.card-name { font-family:var(--f-d); font-weight:700; font-size:12px; color:var(--text); line-height:1.25; flex:1; }
+.card-day { font-family:var(--f-m); font-size:9px; color:var(--text-3); flex-shrink:0; margin-top:1px; }
+.card-badges { display:flex; flex-wrap:wrap; gap:3px; margin-bottom:5px; }
+.badge {
+  font-size:9px; font-weight:700;
+  padding:2px 6px; border-radius:20px; letter-spacing:.03em;
+}
+.assignee-dot {
+  width:16px; height:16px; border-radius:50%;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:8px; font-weight:800; color:#fff; flex-shrink:0;
+  font-family:var(--f-d); letter-spacing:0;
+}
+.b-jimdo { background:rgba(180,130,10,0.10); color:#A07A00; }
+.b-ionos { background:var(--blue-dim); color:var(--blue); }
+.b-strato { background:var(--green-dim); color:var(--green); }
+.b-other { background:rgba(0,0,0,0.06); color:var(--text-3); }
+.b-noweb { background:var(--red-dim); color:var(--red); }
+.b-beta { background:var(--purple-dim); color:var(--purple); }
+.card-row { display:flex; align-items:center; gap:4px; font-size:10.5px; color:var(--text-2); margin-top:3px; }
+.card-row svg { flex-shrink:0; color:var(--text-3); }
+.card-web {
+  font-size:10px; color:var(--blue);
+  display:flex; align-items:center; gap:2px;
+  text-decoration:none; opacity:.7; transition:opacity .1s;
+  max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  margin-top:3px;
+}
+.card-web:hover { opacity:1; }
+.card-acts { display:flex; gap:3px; margin-top:6px; padding-top:5px; border-top:1px solid var(--border); justify-content:flex-end; }
+.card-act {
+  height:22px; padding:0 7px; background:rgba(0,0,0,0.04);
+  border:1px solid var(--border); border-radius:4px; color:var(--text-3);
+  cursor:pointer; display:flex; align-items:center; gap:3px;
+  font-size:10px; font-weight:500; font-family:var(--f-b);
+  transition:all .1s;
+}
+.card-act:hover { background:rgba(0,0,0,0.08); color:var(--text-2); border-color:var(--border-strong); }
+.card-act.d:hover { background:var(--red-dim); color:var(--red); border-color:rgba(197,48,48,0.2); }
+.card-act.adv:hover { background:var(--green-dim); color:var(--green); border-color:rgba(45,149,88,0.2); }
+.col-empty { text-align:center; padding:16px 8px; color:var(--text-3); font-size:11px; }
+
+/* ─── TERMIN PANEL ─── */
+.t-panel { flex:0 0 300px; background:var(--surface); border-left:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
+.p-hdr { padding:11px 14px; border-bottom:1px solid var(--border); flex-shrink:0; }
+.p-hdr-title { font-family:var(--f-d); font-weight:700; font-size:12px; color:var(--text); letter-spacing:.01em; }
+.p-body { flex:1; overflow-y:auto; padding:12px; }
+
+/* ─── CALENDAR ─── */
+.cal-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.cal-mo { font-family:var(--f-d); font-weight:700; font-size:13px; }
+.cal-nav { background:none; border:none; color:var(--text-2); cursor:pointer; padding:3px 7px; border-radius:4px; font-size:15px; transition:color .1s, background .1s; }
+.cal-nav:hover { color:var(--text); background:rgba(0,0,0,0.05); }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+.cal-dn { text-align:center; font-size:9px; font-weight:700; color:var(--text-3); text-transform:uppercase; padding:3px 0; letter-spacing:.04em; }
+.cal-d {
+  aspect-ratio:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  border-radius:5px; font-size:11px; color:var(--text-2);
+  cursor:pointer; transition:background .1s; position:relative; gap:1px;
+}
+.cal-d:hover { background:rgba(0,0,0,0.06); color:var(--text); }
+.cal-d.empty { cursor:default; }
+.cal-d.today { color:var(--accent); font-weight:700; background:rgba(5,150,105,0.12); }
+.cal-d.has-e { color:var(--text); font-weight:600; }
+.cal-d.has-e::after { content:''; width:4px; height:4px; border-radius:50%; background:var(--accent); display:block; }
+.cal-d.om { color:var(--text-3); opacity:.4; }
+.cal-evts { margin-top:12px; }
+.cal-evt-ttl { font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
+.cal-evt-item { background:var(--card); border:1px solid var(--border); border-radius:var(--r-s); padding:7px 9px; margin-bottom:4px; cursor:pointer; transition:border-color .1s, box-shadow .1s; }
+.cal-evt-item:hover { border-color:var(--border-strong); box-shadow:0 2px 8px rgba(0,0,0,0.09); }
+.cal-evt-date { font-family:var(--f-m); font-size:9px; color:var(--accent); margin-bottom:1px; font-weight:600; }
+.cal-evt-name { font-size:12px; font-weight:600; color:var(--text); }
+.cal-evt-addr { font-size:10px; color:var(--text-2); margin-top:1px; }
+
+/* ─── TO-DO ─── */
+.todo-wrap { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.todo-add-bar { padding:12px 16px; border-bottom:1px solid var(--border); background:var(--surface); display:flex; gap:8px; flex-shrink:0; }
+.todo-inp {
+  flex:1; background:rgba(0,0,0,0.05); border:1px solid var(--border);
+  border-radius:var(--r-s); padding:7px 11px; color:var(--text);
+  font-family:var(--f-b); font-size:13px; outline:none;
+  transition:border-color .15s;
+}
+.todo-inp::placeholder { color:var(--text-3); }
+.todo-inp:focus { border-color:var(--accent); background:#fff; }
+.todo-cols { flex:1; display:flex; overflow:hidden; }
+.todo-col { flex:1; display:flex; flex-direction:column; padding:12px 14px; overflow:hidden; border-right:1px solid var(--border); }
+.todo-col:last-child { border-right:none; }
+.todo-col-hdr { font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:.07em; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.todo-col-cnt { font-family:var(--f-m); font-size:9px; background:rgba(0,0,0,0.06); padding:1px 6px; border-radius:10px; color:var(--text-3); }
+.todo-list { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:4px; }
+.todo-item {
+  background:var(--card); border:1px solid var(--border); border-radius:var(--r-s);
+  padding:8px 10px; display:flex; align-items:flex-start; gap:8px;
+  box-shadow:0 1px 2px rgba(0,0,0,0.06);
+  transition:border-color .1s, box-shadow .1s;
+}
+.todo-item:hover { border-color:var(--border-strong); box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+.todo-item.done { opacity:.5; }
+.todo-item.done .todo-text { text-decoration:line-through; color:var(--text-3); }
+.todo-cb {
+  width:15px; height:15px; border:1.5px solid var(--border-strong);
+  border-radius:3px; cursor:pointer; flex-shrink:0; margin-top:1px;
+  background:none; appearance:none; -webkit-appearance:none;
+  transition:all .1s;
+}
+.todo-cb:checked { background:var(--green); border-color:var(--green); }
+.todo-cb:checked::after { content:'✓'; color:#fff; font-size:9px; display:flex; align-items:center; justify-content:center; height:100%; }
+.todo-info { flex:1; min-width:0; }
+.todo-text { font-size:13px; color:var(--text); line-height:1.4; }
+.todo-meta { font-size:10px; color:var(--text-3); margin-top:2px; }
+.todo-prio { display:inline-block; font-size:8.5px; font-weight:700; padding:1px 5px; border-radius:3px; letter-spacing:.03em; text-transform:uppercase; margin-right:4px; }
+.prio-h { background:var(--red-dim); color:var(--red); }
+.prio-m { background:var(--accent-dim); color:var(--accent); }
+.prio-l { background:rgba(0,0,0,0.06); color:var(--text-3); }
+.todo-del { background:none; border:none; color:var(--text-3); cursor:pointer; font-size:13px; padding:1px; line-height:1; opacity:0; transition:opacity .1s; flex-shrink:0; }
+.todo-item:hover .todo-del { opacity:1; }
+.todo-del:hover { color:var(--red); }
+.todo-empty { text-align:center; padding:20px 10px; color:var(--text-3); font-size:12px; }
+
+/* ─── TERMIN LIST ─── */
+.t-list-item {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--r); padding:16px 18px; margin-bottom:10px;
+  display:flex; gap:16px; cursor:pointer;
+  transition:border-color .15s, box-shadow .15s;
+  box-shadow:0 1px 3px rgba(0,0,0,0.07);
+}
+.t-list-item:hover { border-color:var(--border-strong); box-shadow:0 3px 12px rgba(0,0,0,0.10); }
+
+/* ─── MODALS ─── */
+.ov {
+  position:fixed; inset:0; background:rgba(0,0,0,0.4);
+  backdrop-filter:blur(4px); z-index:1000;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.ov.open { opacity:1; pointer-events:all; }
+.modal {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:14px; width:500px;
+  max-width:calc(100vw - 28px); max-height:calc(100vh - 72px);
+  display:flex; flex-direction:column;
+  transform:translateY(10px) scale(0.98); transition:transform .22s;
+  box-shadow:0 24px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06);
+}
+.ov.open .modal { transform:none; }
+.m-hdr {
+  padding:16px 20px 13px;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+  flex-shrink:0;
+}
+.m-title { font-family:var(--f-d); font-weight:700; font-size:15px; }
+.m-close { background:none; border:none; color:var(--text-3); cursor:pointer; font-size:20px; line-height:1; padding:3px; transition:color .1s; }
+.m-close:hover { color:var(--text); }
+.m-body { flex:1; overflow-y:auto; padding:16px 20px; }
+.m-foot { padding:11px 20px; border-top:1px solid var(--border); display:flex; gap:7px; justify-content:flex-end; flex-shrink:0; }
+
+/* ─── FORM ─── */
+.fg { margin-bottom:11px; }
+.fr { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+label { display:block; font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px; }
+input[type=text], input[type=url], input[type=tel], input[type=date], input[type=number], select, textarea {
+  width:100%; background:rgba(0,0,0,0.04); border:1px solid var(--border);
+  border-radius:var(--r-s); padding:7px 10px; color:var(--text);
+  font-family:var(--f-b); font-size:13px; outline:none;
+  transition:border-color .15s; appearance:none;
+}
+input:focus, select:focus, textarea:focus { border-color:var(--accent); background:#fff; }
+textarea { resize:vertical; min-height:64px; }
+select {
+  background-image:url("data:image/svg+xml,%3Csvg width='10' height='7' viewBox='0 0 10 7' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 6L9 1' stroke='%23A4A4B0' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 10px center; padding-right:26px;
+}
+.div { height:1px; background:var(--border); margin:13px 0; }
+.fg-highlight { background:rgba(5,150,105,0.06); border:1px solid rgba(5,150,105,0.2); border-radius:var(--r-s); padding:10px 12px; margin-bottom:11px; }
+.fg-highlight label { color:var(--accent); }
+
+/* ─── KPI SETTINGS ─── */
+.kpi-toggle-list { display:flex; flex-direction:column; gap:5px; }
+.kpi-toggle { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:var(--r-s); border:1px solid var(--border); transition:background .1s; }
+.kpi-toggle:hover { background:rgba(0,0,0,0.03); }
+.kpi-toggle-cb { width:14px; height:14px; accent-color:var(--accent); cursor:pointer; flex-shrink:0; }
+.kpi-toggle-info { flex:1; min-width:0; }
+.kpi-toggle-lbl { font-size:12.5px; color:var(--text); font-weight:500; }
+.kpi-toggle-desc { font-size:10px; color:var(--text-3); }
+.kpi-toggle-goal { display:flex; align-items:center; gap:4px; flex-shrink:0; }
+.kpi-toggle-goal label { font-size:9.5px; color:var(--text-3); text-transform:uppercase; letter-spacing:.05em; margin:0; white-space:nowrap; }
+.kpi-toggle-goal input { width:68px; padding:4px 7px; font-size:12px; text-align:right; }
+
+/* ─── NOTIF ─── */
+.notif {
+  position:fixed; bottom:18px; right:18px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r); padding:10px 14px;
+  font-size:13px; color:var(--text); z-index:2000;
+  transform:translateY(70px); opacity:0;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1); max-width:300px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06);
+}
+.notif.show { transform:translateY(0); opacity:1; }
+.notif.ok { border-color:rgba(45,149,88,.3); color:var(--green); }
+.notif.err { border-color:rgba(197,48,48,.3); color:var(--red); }
+
+/* ─── SETTINGS TABS ─── */
+.stabs { display:flex; gap:2px; margin-bottom:14px; border-bottom:1px solid var(--border); padding-bottom:8px; }
+.stab { font-size:12px; font-weight:600; color:var(--text-3); background:none; border:none; padding:4px 10px; border-radius:4px; cursor:pointer; transition:all .1s; }
+.stab.act { color:var(--accent); background:var(--accent-dim); }
+.stab:hover:not(.act) { color:var(--text); background:rgba(0,0,0,0.06); }
+.s-pane { display:none; }
+.s-pane.act { display:block; }
+.scope-seg { display:flex; gap:2px; margin-top:4px; }
+.scope-btn { font-family:var(--f-m); font-size:9px; font-weight:700; padding:2px 6px; border-radius:3px; border:1px solid var(--border); background:none; color:var(--text-3); cursor:pointer; transition:all .1s; letter-spacing:.04em; }
+.scope-btn.act { background:var(--accent); color:#fff; border-color:var(--accent); }
+.scope-btn:hover:not(.act) { color:var(--text); border-color:var(--border-strong); background:rgba(0,0,0,0.04); }
+.scope-sub-tabs { display:flex; gap:4px; margin-bottom:12px; }
+.scope-sub-tab { font-size:11px; font-weight:600; color:var(--text-3); background:none; border:1px solid var(--border); padding:3px 10px; border-radius:4px; cursor:pointer; transition:all .1s; }
+.scope-sub-tab.act { color:var(--accent); background:var(--accent-dim); border-color:var(--accent-dim); }
+
+/* ─── SYNC DOT ─── */
+.sync-dot {
+  width:7px; height:7px; border-radius:50%; flex-shrink:0;
+  transition:background .3s; cursor:default;
+}
+.sync-dot.synced { background:var(--accent); box-shadow:0 0 6px rgba(5,150,105,0.4); }
+.sync-dot.saving { background:#F59E0B; animation:sdpulse 0.8s ease-in-out infinite; }
+.sync-dot.error  { background:var(--red); }
+.sync-dot.offline { background:var(--text-3); }
+@keyframes sdpulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="logo">Kjell <span style="color:var(--accent);margin:0 1px;">&amp;</span> Julius</div>
+  <div id="syncDot" class="sync-dot offline" title="Verbinde…"></div>
+  <nav class="hnav">
+    <button class="hnav-btn act" onclick="switchView('board')">Kanban Board</button>
+    <button class="hnav-btn" onclick="switchView('termin')">Termine</button>
+    <button class="hnav-btn" onclick="switchView('todo')">To-Do</button>
+  </nav>
+  <div class="srch">
+    <svg class="srch-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" class="srch-inp" id="srchInp" placeholder="Suchen…" oninput="handleSearch(this.value)">
+  </div>
+  <div class="hdr-r">
+    <button class="btn btn-g btn-sm" onclick="openImport()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Import
+    </button>
+    <button class="btn-ghost" onclick="openSettings()" title="Einstellungen">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+    <button class="btn btn-p btn-sm" onclick="openAddLead('leads')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Lead hinzufügen
+    </button>
+  </div>
+</header>
+
+<!-- KPI BAR -->
+<div class="kpi-bar" id="kpiBar"></div>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- BOARD VIEW -->
+  <div class="view act" id="vBoard">
+    <div class="kanban" id="kanban"></div>
+  </div>
+
+  <!-- TERMIN VIEW -->
+  <div class="view" id="vTermin">
+    <div style="flex:1;overflow-y:auto;padding:18px 22px;">
+      <div style="font-family:var(--f-d);font-weight:800;font-size:16px;letter-spacing:-.02em;margin-bottom:16px;color:var(--text);display:flex;align-items:center;gap:12px;white-space:nowrap;">
+        Pitch Übersicht
+        <button class="btn btn-g btn-sm" onclick="openRouteMap()" style="margin-left:auto;flex-shrink:0;font-weight:500;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+          Routenplaner
+        </button>
+      </div>
+      <div id="tList"></div>
+    </div>
+    <div class="t-panel">
+      <div class="p-hdr">
+        <div class="p-hdr-title">📅 Kalender</div>
+      </div>
+      <div class="p-body" id="pBody"></div>
+    </div>
+  </div>
+
+  <!-- TO-DO VIEW -->
+  <div class="view" id="vTodo">
+    <div class="todo-wrap">
+      <div class="todo-add-bar" style="flex-wrap:wrap;gap:6px;">
+        <input class="todo-inp" id="todoInp" placeholder="Aufgabe…" onkeydown="todoKeydown(event)" style="min-width:150px;flex:1;">
+        <input class="todo-inp" id="todoDesc" placeholder="Beschreibung (optional)…" style="min-width:200px;flex:2;">
+        <select id="todoAssignee" style="width:100px;flex-shrink:0;">
+          <option value="">Beide</option>
+          <option value="Julius">Julius</option>
+          <option value="Kjell">Kjell</option>
+        </select>
+        <select id="todoPrio" style="width:95px;flex-shrink:0;">
+          <option value="m">Mittel</option>
+          <option value="h">Hoch</option>
+          <option value="l">Niedrig</option>
+        </select>
+        <button class="btn btn-p" onclick="addTodo()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Hinzufügen
+        </button>
+      </div>
+      <div class="todo-cols">
+        <div class="todo-col">
+          <div class="todo-col-hdr">
+            <span>Offen</span>
+            <span class="todo-col-cnt" id="tcOpen">0</span>
+          </div>
+          <div class="todo-list" id="todoOpen"></div>
+        </div>
+        <div class="todo-col">
+          <div class="todo-col-hdr">
+            <span>Erledigt</span>
+            <span class="todo-col-cnt" id="tcDone">0</span>
+          </div>
+          <div class="todo-list" id="todoDone"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL: LEAD -->
+<div class="ov" id="mLead">
+  <div class="modal">
+    <div class="m-hdr">
+      <div class="m-title" id="mLeadTitle">Lead hinzufügen</div>
+      <button class="m-close" onclick="closeModal('mLead')">×</button>
+    </div>
+    <div class="m-body">
+      <input type="hidden" id="eId">
+      <div class="fr">
+        <div class="fg"><label>Unternehmensname *</label><input type="text" id="fName" placeholder="z.B. Salon Goldschere"></div>
+        <div class="fg"><label>Branche</label><input type="text" id="fBranche" placeholder="z.B. Friseur, Kosmetik…"></div>
+      </div>
+      <div class="fg"><label>Bearbeitet von</label>
+        <select id="fAssignee">
+          <option value="">— niemand —</option>
+          <option value="julius">Julius</option>
+          <option value="kjell">Kjell</option>
+        </select>
+      </div>
+      <div class="fg"><label>Adresse</label><input type="text" id="fAddr" placeholder="Eppendorfer Weg 12, 20259 Hamburg"></div>
+      <div class="fr">
+        <div class="fg"><label>Telefon</label><input type="tel" id="fPhone" placeholder="040 123456"></div>
+        <div class="fg"><label>Anbieter (aktuelle Site)</label>
+          <select id="fAnbieter">
+            <option>Jimdo</option><option>IONOS</option><option>Strato</option>
+            <option value="Anderer Anbieter">Anderer Anbieter</option>
+            <option value="Keine Website">Keine Website</option>
+          </select>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Aktuelle Website</label><input type="url" id="fSite" placeholder="https://…"></div>
+        <div class="fg"><label>Beta-URL (Demo)</label><input type="url" id="fBeta" placeholder="https://…"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Google Bewertung</label><input type="number" id="fRating" placeholder="4.5" min="1" max="5" step="0.1"></div>
+        <div class="fg"><label>Pitch-Datum</label><input type="date" id="fPitch"></div>
+      </div>
+      <div class="fg"><label>Stage</label>
+        <select id="fStage" onchange="stageChanged(this.value)">
+          <option value="leads">Leads</option>
+          <option value="bearbeitung">In Bearbeitung</option>
+          <option value="demo">Demo Live</option>
+          <option value="termin">Pitch</option>
+          <option value="aufbau">Im Aufbau</option>
+          <option value="gewonnen">Gewonnen</option>
+          <option value="verloren">Verloren</option>
+        </select>
+      </div>
+      <div class="fg-highlight" id="revenueField" style="display:none;">
+        <label>Tatsächlicher Umsatz (€)</label>
+        <input type="number" id="fRevenue" placeholder="z.B. 1800" min="0" step="50">
+      </div>
+      <div class="fg"><label>Notizen</label><textarea id="fNotes" placeholder="Anmerkungen, Besonderheiten…"></textarea></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-danger btn-sm" id="mDeleteBtn" style="display:none;margin-right:auto;" onclick="deleteCurrentLead()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Löschen
+      </button>
+      <button class="btn btn-g" onclick="closeModal('mLead')">Abbrechen</button>
+      <button class="btn btn-p" id="mSaveBtn" onclick="saveLead()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: IMPORT -->
+<div class="ov" id="mImport">
+  <div class="modal">
+    <div class="m-hdr">
+      <div class="m-title">Leads importieren</div>
+      <button class="m-close" onclick="closeModal('mImport')">×</button>
+    </div>
+    <div class="m-body">
+      <p style="color:var(--text-2);font-size:13px;margin-bottom:14px;">
+        Importiert neue Leads aus <code style="background:rgba(0,0,0,0.06);padding:2px 6px;border-radius:4px;font-family:var(--f-m);font-size:11px;">leads_import.json</code> im Projektstamm.
+      </p>
+      <button class="btn btn-p" style="width:100%;justify-content:center;margin-bottom:12px;" onclick="importFromServer()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Aus leads_import.json laden
+      </button>
+      <div class="div"></div>
+      <p style="color:var(--text-2);font-size:11.5px;margin-bottom:8px;">Oder JSON manuell einfügen:</p>
+      <textarea id="iJson" style="height:110px;font-family:var(--f-m);font-size:11px;" placeholder='[{"salonName":"Salon Ella","address":"...","phone":"...","currentWebsite":"...","anbieter":"Jimdo","googleRating":4.5}]'></textarea>
+      <div id="iStatus" style="font-size:12px;color:var(--text-2);margin-top:7px;"></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-g" onclick="closeModal('mImport')">Schließen</button>
+      <button class="btn btn-p" onclick="importJson()">JSON importieren</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SETTINGS -->
+<div class="ov" id="mSettings">
+  <div class="modal">
+    <div class="m-hdr">
+      <div class="m-title">Einstellungen</div>
+      <button class="m-close" onclick="closeModal('mSettings')">×</button>
+    </div>
+    <div class="m-body">
+      <!-- KPI Config -->
+      <div class="s-pane act" id="sKpis">
+        <p style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Ziele einstellen für Zeitraum:</p>
+        <div class="scope-sub-tabs">
+          <button class="scope-sub-tab act" onclick="switchGoalScope(this,'woche')">Woche</button>
+          <button class="scope-sub-tab" onclick="switchGoalScope(this,'monat')">Monat</button>
+          <button class="scope-sub-tab" onclick="switchGoalScope(this,'jahr')">Jahr</button>
+        </div>
+        <div class="kpi-toggle-list" id="kpiToggleList"></div>
+        <div class="div" style="margin-top:14px;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;color:var(--text-3);">Alle Leads löschen</span>
+          <button class="btn btn-danger btn-sm" onclick="if(confirm('Wirklich alle Leads löschen?')){S.leads=[];saveS();renderAll();closeModal('mSettings');notify('Daten gelöscht');}">Reset</button>
+        </div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-g" onclick="closeModal('mSettings')">Abbrechen</button>
+      <button class="btn btn-p" onclick="saveSettings()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ROUTE PLANNER -->
+<div class="ov" id="mRoute">
+  <div class="modal" style="max-width:480px;">
+    <div class="m-hdr">
+      <div class="m-title">Routenplaner</div>
+      <button class="m-close" onclick="closeModal('mRoute')">×</button>
+    </div>
+    <div class="m-body" id="mRouteBody"></div>
+    <div class="m-foot">
+      <button class="btn btn-g" onclick="closeModal('mRoute')">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════
+const STAGES = [
+  { id:'leads',       label:'Leads',          clr:'#3D7CC4', icon:'⚡' },
+  { id:'bearbeitung', label:'In Bearbeitung',  clr:'#2A8C52', icon:'✏️' },
+  { id:'demo',        label:'Demo Live',       clr:'#23784A', icon:'🌐' },
+  { id:'termin',      label:'Pitch',           clr:'#1C6640', icon:'📍' },
+  { id:'aufbau',      label:'Im Aufbau',       clr:'#155535', icon:'🔨' },
+  { id:'gewonnen',    label:'Gewonnen',        clr:'#1AAE6E', icon:'✓'  },
+];
+const MO = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const DN = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+
+const ALL_KPIS = [
+  { id:'leadsToday',  lbl:'Leads Heute',        desc:'Heute hinzugefügte Leads',             goalKey:'leadsToday', goalLbl:'Tagesziel', goalUnit:'' },
+  { id:'betasBuilt',  lbl:'Demos Live',           desc:'Demo / Pitch / Aufbau / Gewonnen',    goalKey:'betasBuilt', goalLbl:'Wochenziel', goalUnit:'' },
+  { id:'termWk',      lbl:'Pitches',             desc:'Aktuelle Pitch-Termine (Termin-Stage)', goalKey:'termWk',     goalLbl:'Ziel', goalUnit:'' },
+  { id:'closeRate',   lbl:'Abschlussrate',       desc:'Leads → Gewonnen in %',               goalKey:'closeRate',  goalLbl:'Ziel %', goalUnit:'%' },
+  { id:'imAufbau',    lbl:'Im Aufbau',           desc:'Aktive Projekte im Aufbau',            goalKey:null },
+  { id:'wonMo',       lbl:'Gewonnen',            desc:'Deals gewonnen (gesamt)',              goalKey:'wonMo',      goalLbl:'Ziel', goalUnit:'' },
+  { id:'pipeVal',     lbl:'Pipeline-Wert',       desc:'Geschätzter Gesamtwert aktiver Leads', goalKey:'pipeVal',    goalLbl:'Ziel €', goalUnit:'€' },
+  { id:'revenue',     lbl:'Umsatz',              desc:'Tatsächlicher Umsatz gewonnener Deals',goalKey:'revenue',    goalLbl:'Umsatzziel €', goalUnit:'€' },
+  { id:'avgDays',     lbl:'Ø Abschlusstage',     desc:'Durchschnittliche Tage Lead → Gewonnen',goalKey:null },
+];
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+const DEFAULT_GOALS = {
+  woche: { leadsToday:10, betasBuilt:3, termWk:2, closeRate:30, wonMo:1, pipeVal:5000,  revenue:1500  },
+  monat: { leadsToday:40, betasBuilt:7, termWk:3, closeRate:30, wonMo:2, pipeVal:15000, revenue:5000  },
+  jahr:  { leadsToday:400,betasBuilt:50,termWk:30,closeRate:30, wonMo:20,pipeVal:50000, revenue:50000 },
+};
+let S = {
+  leads: [],
+  todos: [],
+  cfg: {
+    val: 1500,
+    scope: 'monat',
+    kpiVisible: { leadsToday:true, betasBuilt:true, termWk:true, closeRate:true, wonMo:true, pipeVal:true, revenue:true, imAufbau:false, avgDays:false },
+    scopeGoals: JSON.parse(JSON.stringify(DEFAULT_GOALS)),
+  },
+};
+let srchQ = '', curView = 'board';
+let dragId = null;
+let calY = new Date().getFullYear(), calM = new Date().getMonth();
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+const uid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c==='x'?r:r&0x3|0x8).toString(16); });
+const td = () => new Date().toISOString().split('T')[0];
+const ago = n => { const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().split('T')[0]; };
+const diff = (a,b) => Math.floor((new Date(b)-new Date(a))/86400000);
+const since = d => diff(d, td());
+const fmtD = d => { if(!d) return ''; const [y,m,day]=d.split('-'); return `${day}.${m}.${y}`; };
+const thisWeek = d => {
+  const n=new Date(), mo=new Date(n); mo.setDate(n.getDate()-((n.getDay()+6)%7)); mo.setHours(0,0,0,0);
+  const su=new Date(mo); su.setDate(mo.getDate()+7);
+  const dt=new Date(d); return dt>=mo && dt<su;
+};
+const thisMo = d => { const n=new Date(),dt=new Date(d); return dt.getMonth()===n.getMonth()&&dt.getFullYear()===n.getFullYear(); };
+const thisYear = d => { const dt=new Date(d); return dt.getFullYear()===new Date().getFullYear(); };
+const inKW = d => { const dt=new Date(d); return getKW(dt)===getKW()&&dt.getFullYear()===new Date().getFullYear(); };
+const inScope = d => { const sc=S.cfg.scope||'monat'; return sc==='woche'?inKW(d):sc==='jahr'?thisYear(d):thisMo(d); };
+const slbl = id => STAGES.find(s=>s.id===id)?.label||id;
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const hostname = url => { try { return new URL(url.startsWith('http')?url:'https://'+url).hostname; } catch { return url.slice(0,28); } };
+const fmtEur = v => v>=1000 ? `€${(v/1000).toFixed(1)}k` : `€${v}`;
+
+function notify(msg, t='ok') {
+  const el=document.getElementById('notif');
+  el.textContent=msg; el.className=`notif ${t} show`;
+  setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+// ═══════════════════════════════════════════════════════════
+// PERSISTENCE  (Supabase Cloud Sync)
+// ═══════════════════════════════════════════════════════════
+function setSyncStatus(s) {
+  const el = document.getElementById('syncDot');
+  if (!el) return;
+  el.className = 'sync-dot ' + s;
+  el.title = { saving:'Speichern…', synced:'Synchronisiert', error:'Sync-Fehler', offline:'Offline / nicht verbunden' }[s] || s;
+}
+
+function migrateState(saved) {
+  S = { ...S, ...saved };
+  if (!S.cfg.kpiVisible) S.cfg.kpiVisible = { leadsToday:true, betasBuilt:true, termWk:true, closeRate:true, wonMo:true, pipeVal:true, revenue:true, imAufbau:false, avgDays:false };
+  if (!S.todos) S.todos = [];
+  if (!S.cfg.scope) S.cfg.scope = 'monat';
+  if (!S.cfg.scopeGoals) {
+    const old = S.cfg.kpiGoals || {};
+    S.cfg.scopeGoals = JSON.parse(JSON.stringify(DEFAULT_GOALS));
+    if (Object.keys(old).length) Object.assign(S.cfg.scopeGoals.monat, old);
+    delete S.cfg.kpiGoals;
+  }
+  if (S.cfg.goal) { S.cfg.scopeGoals.woche.betasBuilt = S.cfg.goal; delete S.cfg.goal; }
+  S.leads.forEach(l => {
+    if (!l.stageHistory) l.stageHistory = [];
+    const hasCurrentStage = l.stageHistory.some(e=>e.stage===l.stage);
+    if (!hasCurrentStage) {
+      const date = l.addedDate || td();
+      l.stageHistory.push({ stage:l.stage, date, kw:getKW(new Date(date)) });
+    }
+  });
+}
+
+async function loadS() {
+  // 1. Zuerst localStorage als Fallback laden (Migration)
+  try {
+    const raw = localStorage.getItem('crm_v5');
+    if (raw) migrateState(JSON.parse(raw));
+  } catch(e) { /* start clean */ }
+
+  // 2. Supabase laden (überschreibt localStorage wenn Daten vorhanden)
+  try {
+    const { data, error } = await sb.from('crm_state').select('data').eq('id','main').single();
+    if (data?.data) {
+      migrateState(data.data);
+    } else {
+      // Erster Start: lokale Daten zu Supabase hochladen
+      await sb.from('crm_state').upsert({ id:'main', data: S, updated_at: new Date().toISOString() });
+    }
+    setSyncStatus('synced');
+  } catch(e) {
+    setSyncStatus('offline');
+  }
+
+  // 3. Seed-Leads (nur wenn noch nicht vorhanden)
+  const seedLeads = [
+    { salonName:'Hairdresser Bünning', currentWebsite:'https://www.hairdresser-bünning.de/', branche:'Friseur' },
+    { salonName:'Blumen Häcks',        currentWebsite:'https://www.blumenhaecks.de/',        branche:'' },
+    { salonName:'Atelier Küch',        currentWebsite:'http://www.atelier-kuech.de/',         branche:'' },
+    { salonName:'TimeArt',             currentWebsite:'https://www.time-art.net/',             branche:'' },
+  ];
+  for (const d of seedLeads) {
+    if (!S.leads.some(l=>l.currentWebsite===d.currentWebsite)) {
+      S.leads.push({
+        id: Date.now().toString(36)+Math.random().toString(36).slice(2,7),
+        salonName:d.salonName, branche:d.branche,
+        address:'', phone:'', currentWebsite:d.currentWebsite,
+        anbieter:'Anderer Anbieter', googleRating:0, reviewCount:0,
+        betaUrl:'', stage:'leads', addedDate:td(),
+        stageHistory:[{stage:'leads',date:td(),kw:getKW()}],
+        pitchDate:null, notes:'',
+        estimatedValue:S.cfg?.val||1200, revenue:0,
+      });
+    }
+  }
+}
+
+let _saveTimer = null;
+function saveS() {
+  // Lokal sofort speichern (Backup)
+  localStorage.setItem('crm_v5', JSON.stringify(S));
+  // Supabase debounced (600ms)
+  clearTimeout(_saveTimer);
+  setSyncStatus('saving');
+  _saveTimer = setTimeout(async () => {
+    try {
+      const { error } = await sb.from('crm_state')
+        .upsert({ id:'main', data: S, updated_at: new Date().toISOString() });
+      setSyncStatus(error ? 'error' : 'synced');
+    } catch(e) {
+      setSyncStatus('error');
+    }
+  }, 600);
+}
+
+function addLead(d) {
+  const l = {
+    id:uid(), salonName:d.salonName||'Unbekannt',
+    branche:d.branche||'',
+    address:d.address||'', phone:d.phone||'',
+    currentWebsite:d.currentWebsite||'', anbieter:d.anbieter||'Anderer Anbieter',
+    googleRating:parseFloat(d.googleRating)||0, reviewCount:parseInt(d.reviewCount)||0,
+    betaUrl:d.betaUrl||'', stage:d.stage||'leads',
+    assignee:d.assignee||'',
+    addedDate:d.addedDate||td(),
+    stageHistory:d.stageHistory||[{stage:d.stage||'leads',date:d.addedDate||td(),kw:getKW()}],
+    pitchDate:d.pitchDate||null, notes:d.notes||'',
+    estimatedValue:parseInt(d.estimatedValue)||S.cfg.val,
+    revenue:parseInt(d.revenue)||0,
+  };
+  S.leads.push(l); saveS(); return l;
+}
+
+function updateLead(id, d) {
+  const i = S.leads.findIndex(l=>l.id===id);
+  if (i===-1) return;
+  const old = S.leads[i];
+  const updated = {...old, ...d};
+  if (d.stage && d.stage!==old.stage) {
+    updated.stageHistory = [...(old.stageHistory||[]), {stage:d.stage, date:td(), kw:getKW()}];
+    // Stage-Wechsel: Lead ans Ende verschieben → landet unten in neuer Spalte
+    S.leads.splice(i, 1);
+    S.leads.push(updated);
+  } else {
+    S.leads[i] = updated;
+  }
+  saveS();
+}
+
+function moveLead(id, stage) {
+  updateLead(id, {stage});
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════
+// KPIs
+// ═══════════════════════════════════════════════════════════
+function getKW(date = new Date()) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+function calcKPIs() {
+  const ls = S.leads;
+  const G = S.cfg.scopeGoals?.[S.cfg.scope||'monat'] || DEFAULT_GOALS.monat;
+  const by = s => ls.filter(l=>l.stage===s);
+
+  // Avg deal value from closed won deals (with revenue), fallback to cfg.val
+  const wonWithRev = ls.filter(l=>l.stage==='gewonnen' && l.revenue>0);
+  const avgDealVal = wonWithRev.length > 0
+    ? Math.round(wonWithRev.reduce((s,l)=>s+l.revenue,0) / wonWithRev.length)
+    : S.cfg.val;
+
+  const leadsToday = ls.filter(l=>inScope(l.addedDate)).length;
+  // Demos Live: only leads currently sitting in the demo stage
+  const betasBuilt = by('demo').length;
+  // Pitch: leads aktuell in 'termin'-Stage (aktive Pitch-Termine)
+  const termWk = by('termin').length;
+
+  const won = by('gewonnen').length, lost = by('verloren').length;
+  const closeRate = (won+lost)>0 ? Math.round(won/(won+lost)*100) : null;
+
+  // Gewonnen: alle tatsächlich gewonnenen Deals (gesamt, nicht scope-gefiltert)
+  const wonMoLeads = by('gewonnen');
+  const wonMo = wonMoLeads.length;
+  const revenue = wonMoLeads.reduce((s,l)=>s+(l.revenue||avgDealVal),0);
+
+  // Pipeline: ab "In Bearbeitung" aufwärts
+  const pipeLeads = ls.filter(l=>['bearbeitung','demo','termin','aufbau'].includes(l.stage));
+  const pipeVal = pipeLeads.length * avgDealVal;
+  const active = ls.filter(l=>!['gewonnen','verloren'].includes(l.stage));
+
+  const wonH = ls.filter(l=>l.stage==='gewonnen'&&(l.stageHistory||[]).length>1);
+  let avgDays = null;
+  if (wonH.length>0) {
+    const tot = wonH.reduce((s,l)=>{
+      const first=l.stageHistory[0]?.date||l.addedDate;
+      const last=[...l.stageHistory].reverse().find(h=>h.stage==='gewonnen')?.date||td();
+      return s+diff(first,last);
+    },0);
+    avgDays = Math.round(tot/wonH.length);
+  }
+
+  const pct = (n,goal) => goal>0 ? Math.min(100, Math.round(n/goal*100)) : null;
+
+  return { leadsToday, betasBuilt, termWk, closeRate, imAufbau:by('aufbau').length, wonMo, pipeVal, avgDays, totalActive:active.length, pipeCount:pipeLeads.length, revenue, pct, G, avgDealVal };
+}
+
+function renderKPIs() {
+  const k = calcKPIs();
+  const { G } = k;
+  const v = S.cfg.kpiVisible;
+
+  const prog = (n, goal) => goal>0 ? Math.min(100, Math.round(n/goal*100)) : null;
+  const fmtGoal = (goal, unit) => unit==='€' ? fmtEur(goal) : `${goal}${unit}`;
+  const fmtVal = (id, raw) => id==='closeRate' ? (raw!==null?`${raw}%`:'—') : id==='avgDays' ? (raw!==null?`${raw}d`:'—') : ['pipeVal','revenue'].includes(id) ? fmtEur(raw) : `${raw}`;
+
+  const makeKpi = (id, raw, sub, cls='') => {
+    const goal = G[id];
+    const p = goal!=null ? prog(raw, goal) : null;
+    let valStr, subStr;
+    if (goal!=null && !['closeRate','pipeVal','revenue','avgDays'].includes(id)) {
+      valStr = `${raw}<span style="opacity:.4;font-size:.6em">/${goal}</span>`;
+      subStr = p!==null ? `${p}% ${sub}` : sub;
+    } else if (goal!=null && ['pipeVal','revenue'].includes(id)) {
+      valStr = fmtEur(raw);
+      subStr = p!==null ? `${p}% von ${fmtEur(goal)}` : sub;
+    } else if (goal!=null && id==='closeRate') {
+      valStr = raw!==null ? `${raw}%` : '—';
+      subStr = `Ziel: ${goal}%`;
+    } else {
+      valStr = fmtVal(id, raw);
+      subStr = sub;
+    }
+    const clsFinal = typeof cls==='function' ? cls() : cls;
+    return `<div class="kpi-c ${clsFinal}">
+      <div class="kpi-lbl">${ALL_KPIS.find(x=>x.id===id)?.lbl||id}</div>
+      <div class="kpi-val">${valStr}</div>
+      <div class="kpi-sub">${subStr}</div>
+      ${p!==null?`<div class="kpi-prog"><div class="kpi-prog-b" style="width:${p}%"></div></div>`:''}
+    </div>`;
+  };
+
+  const sc = S.cfg.scope||'monat';
+  const scopeLbl = sc==='woche'?'Woche':sc==='jahr'?'Jahr':'Monat';
+  const items = [
+    { id:'leadsToday', raw:k.leadsToday, sub:'neue Leads',                  cls:k.leadsToday>0?'kpi-b':'' },
+    { id:'betasBuilt', raw:k.betasBuilt, sub:'aktuell in Demo Live',         cls:()=>{ const p=prog(k.betasBuilt,G.betasBuilt); return p>=100?'kpi-g':p>=50?'kpi-a':''; } },
+    { id:'termWk',     raw:k.termWk,     sub:'aktive Pitch-Termine',          cls:k.termWk>0?'kpi-a':'' },
+    { id:'closeRate',  raw:k.closeRate,  sub:'Leads → Gewonnen',             cls:k.closeRate!=null&&k.closeRate>=(G.closeRate||30)?'kpi-g':'' },
+    { id:'imAufbau',   raw:k.imAufbau,   sub:'aktive Projekte',              cls:'' },
+    { id:'wonMo',      raw:k.wonMo,      sub:'Deals gewonnen (gesamt)',       cls:k.wonMo>0?'kpi-g':'' },
+    { id:'pipeVal',    raw:k.pipeVal,    sub:`${k.pipeCount} Leads ab In Bearbeitung`, cls:'kpi-a' },
+    { id:'revenue',    raw:k.revenue,    sub:'aus gewonnenen Deals',         cls:k.revenue>0?'kpi-g':'' },
+    { id:'avgDays',    raw:k.avgDays,    sub:'Lead → Gewonnen',              cls:'' },
+  ];
+
+  const kw = getKW();
+  const kwLabel = `<div class="kpi-c" style="flex:0 0 auto;min-width:100px;border-right:2px solid var(--border-strong);background:var(--accent-dim);">
+    <div class="kpi-lbl" style="color:var(--accent);">KW ${kw} · Zeitraum</div>
+    <div class="scope-seg">
+      <button class="scope-btn${sc==='woche'?' act':''}" onclick="setScope('woche')">Woche</button>
+      <button class="scope-btn${sc==='monat'?' act':''}" onclick="setScope('monat')">Monat</button>
+      <button class="scope-btn${sc==='jahr'?' act':''}" onclick="setScope('jahr')">Jahr</button>
+    </div>
+  </div>`;
+
+  document.getElementById('kpiBar').innerHTML = kwLabel + items
+    .filter(x => v[x.id] !== false)
+    .map(x => makeKpi(x.id, x.raw, x.sub, x.cls))
+    .join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// CARD
+// ═══════════════════════════════════════════════════════════
+const bdgCls = a => ({Jimdo:'b-jimdo',IONOS:'b-ionos',Strato:'b-strato','Keine Website':'b-noweb'}[a]||'b-other');
+const nextStage = id => { const ids=STAGES.map(s=>s.id), i=ids.indexOf(id); return i>=0&&i<ids.length-1?ids[i+1]:null; };
+
+function card(l, stageId) {
+  const days = since(l.addedDate);
+  const dl = days===0?'Heute':days===1?'Gestern':`${days}d`;
+  const hasBeta = l.betaUrl?.length>4;
+  const hasSite = l.currentWebsite?.length>4;
+  const next = nextStage(stageId);
+  const isWon = stageId === 'gewonnen';
+
+  return `<div class="card" draggable="true" data-id="${l.id}"
+    onclick="openEdit('${l.id}')"
+    ondragstart="dStart(event,'${l.id}')"
+    ondragend="dEnd(event)">
+    <div class="card-top">
+      <div class="card-name">${esc(l.salonName)}</div>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+        ${l.assignee==='julius'?'<span class="assignee-dot" style="background:#2B6CB0;" title="Julius">J</span>':l.assignee==='kjell'?'<span class="assignee-dot" style="background:#2D9558;" title="Kjell">K</span>':''}
+        <div class="card-day">${dl}</div>
+      </div>
+    </div>
+    <div class="card-badges">
+      <span class="badge ${bdgCls(l.anbieter)}">${esc(l.anbieter)}</span>
+      ${hasBeta?'<span class="badge b-beta">Beta</span>':''}
+      ${l.googleRating?`<span class="badge" style="background:rgba(110,231,183,0.08);color:#6EE7B7;">★ ${l.googleRating}</span>`:''}
+    </div>
+    ${hasSite?`<a class="card-web" href="${esc(l.currentWebsite)}" target="_blank" onclick="event.stopPropagation()"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>${esc(hostname(l.currentWebsite))}</a>`:''}
+    ${isWon&&l.revenue?`<div class="card-row" style="color:var(--green);font-weight:600;font-family:var(--f-m);font-size:10px;margin-top:4px;">€ ${l.revenue.toLocaleString('de-DE')}</div>`:''}
+    <div class="card-acts" onclick="event.stopPropagation()">
+      ${hasBeta?`<button class="card-act" title="Beta öffnen" onclick="window.open('${esc(l.betaUrl)}','_blank')">Beta ↗</button>`:''}
+      ${next?`<button class="card-act adv" title="→ ${slbl(next)}" onclick="moveLead('${l.id}','${next}')">→ ${slbl(next)}</button>`:''}
+      <button class="card-act d" title="Verloren" onclick="moveLead('${l.id}','verloren')">✗</button>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// BOARD
+// ═══════════════════════════════════════════════════════════
+function renderBoard() {
+  const q = srchQ.toLowerCase();
+  const ls = q ? S.leads.filter(l=>
+    l.salonName.toLowerCase().includes(q)||
+    (l.address||'').toLowerCase().includes(q)||
+    (l.branche||'').toLowerCase().includes(q)
+  ) : S.leads;
+
+  let html = STAGES.map(st => {
+    const sls = ls.filter(l=>l.stage===st.id);
+    return `<div class="col" style="--col-clr:${st.clr}">
+      <div class="col-hdr">
+        <span class="col-title">${st.icon} ${st.label}</span>
+        <span class="col-cnt">${sls.length}</span>
+        <button class="col-add" onclick="openAddLead('${st.id}')" title="+">+</button>
+      </div>
+      <div class="col-body" data-stage="${st.id}"
+        ondragover="dOver(event)" ondragleave="dLeave(event)" ondrop="dDrop(event,'${st.id}')">
+        ${sls.length?sls.map(l=>card(l,st.id)).join(''):`<div class="col-empty">Noch leer</div>`}
+      </div>
+    </div>`;
+  }).join('');
+
+  const vls = S.leads.filter(l=>l.stage==='verloren');
+  html += `<div class="col" style="--col-clr:#C53030;opacity:.6">
+    <div class="col-hdr">
+      <span class="col-title">✗ Verloren</span>
+      <span class="col-cnt">${vls.length}</span>
+    </div>
+    <div class="col-body" data-stage="verloren"
+      ondragover="dOver(event)" ondragleave="dLeave(event)" ondrop="dDrop(event,'verloren')">
+      ${vls.length?vls.map(l=>card(l,'verloren')).join(''):`<div class="col-empty">Noch leer</div>`}
+    </div>
+  </div>`;
+
+  document.getElementById('kanban').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// TERMIN VIEW
+// ═══════════════════════════════════════════════════════════
+function renderTermin() {
+  renderTList();
+  renderCal();
+}
+
+function renderTList() {
+  const el = document.getElementById('tList');
+  if (!el) return;
+  const tls = [...S.leads.filter(l=>l.stage==='termin')]
+    .sort((a,b)=>{ if(!a.pitchDate) return 1; if(!b.pitchDate) return -1; return a.pitchDate.localeCompare(b.pitchDate); });
+
+  if (!tls.length) {
+    el.innerHTML = `<div style="text-align:center;padding:50px 20px;color:var(--text-3);">
+      <div style="font-size:32px;margin-bottom:8px;">📍</div>
+      <div style="font-family:var(--f-d);font-size:14px;margin-bottom:4px;color:var(--text-2);">Keine Termine geplant</div>
+      <div style="font-size:12px;">Ziehe Leads in die Termin-Stage</div>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = tls.map(l=>`
+    <div class="t-list-item" onclick="openEdit('${l.id}')">
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:var(--f-d);font-weight:700;font-size:15px;margin-bottom:5px;">${esc(l.salonName)}</div>
+        ${l.address?`<div style="font-size:12px;color:var(--text-2);margin-bottom:4px;display:flex;align-items:center;gap:4px;">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          ${esc(l.address.replace(', Deutschland',''))}</div>`:''}
+        ${l.phone?`<div style="font-size:12px;color:var(--text-2);">📞 ${esc(l.phone)}</div>`:''}
+        ${l.notes?`<div style="font-size:11.5px;color:var(--text-3);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">${esc(l.notes)}</div>`:''}
+      </div>
+      <div style="flex-shrink:0;text-align:right;min-width:90px;">
+        ${l.pitchDate?`<div style="font-family:var(--f-m);font-size:14px;color:var(--accent);font-weight:600;">${fmtD(l.pitchDate)}</div>
+          <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Pitch-Datum</div>`
+          :`<div style="font-size:11px;color:var(--text-3);">Kein Datum</div>`}
+        <div style="margin-top:10px;">
+          <button class="btn btn-g btn-sm" onclick="event.stopPropagation();moveLead('${l.id}','aufbau')">→ Aufbau</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// CALENDAR
+// ═══════════════════════════════════════════════════════════
+function renderCal() {
+  const el = document.getElementById('pBody');
+  if (!el) return;
+
+  const y=calY, m=calM;
+  const first=new Date(y,m,1), last=new Date(y,m+1,0);
+  const fdow=(first.getDay()+6)%7;
+  const dim=last.getDate();
+  const now=new Date(), isCurMo=now.getMonth()===m&&now.getFullYear()===y;
+
+  const pls = S.leads.filter(l=>l.pitchDate&&l.stage==='termin');
+  const pbd = {};
+  pls.forEach(l=>{
+    const [py,pm,pd]=l.pitchDate.split('-').map(Number);
+    if(py===y&&pm-1===m){ if(!pbd[pd]) pbd[pd]=[]; pbd[pd].push(l); }
+  });
+
+  let cells = [];
+  for(let i=0;i<fdow;i++) cells.push(`<div class="cal-d empty"></div>`);
+  for(let d=1;d<=dim;d++) {
+    const isTd=isCurMo&&d===now.getDate(), hasE=!!pbd[d];
+    cells.push(`<div class="cal-d ${isTd?'today':''} ${hasE?'has-e':''}" onclick="calClick(${y},${m+1},${d})">${d}</div>`);
+  }
+
+  const upcoming = pls.filter(l=>l.pitchDate>=td()).sort((a,b)=>a.pitchDate.localeCompare(b.pitchDate)).slice(0,6);
+
+  el.innerHTML = `
+    <div class="cal-hdr">
+      <button class="cal-nav" onclick="calNav(-1)">‹</button>
+      <div class="cal-mo">${MO[m]} ${y}</div>
+      <button class="cal-nav" onclick="calNav(1)">›</button>
+    </div>
+    <div class="cal-grid">
+      ${DN.map(d=>`<div class="cal-dn">${d}</div>`).join('')}
+      ${cells.join('')}
+    </div>
+    <div class="cal-evts">
+      <div class="cal-evt-ttl">Nächste Termine</div>
+      ${!upcoming.length
+        ?`<div style="color:var(--text-3);font-size:12px;text-align:center;padding:12px 0;">Keine Termine</div>`
+        :upcoming.map(l=>`<div class="cal-evt-item" onclick="openEdit('${l.id}')">
+          <div class="cal-evt-date">${fmtD(l.pitchDate)}</div>
+          <div class="cal-evt-name">${esc(l.salonName)}</div>
+          ${l.address?`<div class="cal-evt-addr">${esc(l.address.split(',')[0])}</div>`:''}
+        </div>`).join('')}
+    </div>`;
+}
+function calNav(d) { calM+=d; if(calM>11){calM=0;calY++;} if(calM<0){calM=11;calY--;} renderCal(); }
+function calClick(y,m,d) {
+  const date=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  const l=S.leads.find(x=>x.pitchDate===date&&x.stage==='termin');
+  if(l) openEdit(l.id);
+}
+
+// ═══════════════════════════════════════════════════════════
+// TO-DO
+// ═══════════════════════════════════════════════════════════
+function addTodo() {
+  const txt = document.getElementById('todoInp').value.trim();
+  if (!txt) return;
+  const prio = document.getElementById('todoPrio').value;
+  const desc = document.getElementById('todoDesc').value.trim();
+  const assignee = document.getElementById('todoAssignee').value;
+  S.todos.unshift({ id:uid(), text:txt, desc, assignee, prio, done:false, created:td() });
+  document.getElementById('todoInp').value = '';
+  document.getElementById('todoDesc').value = '';
+  document.getElementById('todoAssignee').value = '';
+  saveS(); renderTodo();
+}
+
+function todoKeydown(e) { if(e.key==='Enter') addTodo(); }
+
+function toggleTodo(id) {
+  const t = S.todos.find(x=>x.id===id);
+  if (t) { t.done = !t.done; saveS(); renderTodo(); }
+}
+
+function deleteTodo(id) {
+  S.todos = S.todos.filter(x=>x.id!==id);
+  saveS(); renderTodo();
+}
+
+const prioCls = p => ({h:'prio-h',m:'prio-m',l:'prio-l'}[p]||'prio-l');
+const prioLbl = p => ({h:'Hoch',m:'Mittel',l:'Niedrig'}[p]||'');
+
+const assigneeClr = a => ({Julius:'#2B6CB0',Kjell:'#6B46C1'}[a]||'var(--text-3)');
+const assigneeIcon = a => a ? `<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;background:${assigneeClr(a)}18;color:${assigneeClr(a)};margin-right:4px;">${a}</span>` : '';
+
+function todoHTML(t) {
+  return `<div class="todo-item ${t.done?'done':''}">
+    <input type="checkbox" class="todo-cb" ${t.done?'checked':''} onchange="toggleTodo('${t.id}')">
+    <div class="todo-info">
+      <div class="todo-text">${esc(t.text)}</div>
+      ${t.desc?`<div style="font-size:11px;color:var(--text-3);margin-top:2px;line-height:1.4;">${esc(t.desc)}</div>`:''}
+      <div class="todo-meta">${assigneeIcon(t.assignee)}<span class="todo-prio ${prioCls(t.prio)}">${prioLbl(t.prio)}</span>${fmtD(t.created)}</div>
+    </div>
+    <button class="todo-del" onclick="deleteTodo('${t.id}')">×</button>
+  </div>`;
+}
+
+function renderTodo() {
+  const open = S.todos.filter(t=>!t.done);
+  const done = S.todos.filter(t=>t.done);
+  document.getElementById('tcOpen').textContent = open.length;
+  document.getElementById('tcDone').textContent = done.length;
+  document.getElementById('todoOpen').innerHTML = open.length ? open.map(todoHTML).join('') : `<div class="todo-empty">Keine offenen Aufgaben</div>`;
+  document.getElementById('todoDone').innerHTML = done.length ? done.map(todoHTML).join('') : `<div class="todo-empty">Noch nichts erledigt</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// DRAG & DROP (KANBAN)
+// ═══════════════════════════════════════════════════════════
+function dStart(e,id){ dragId=id; e.dataTransfer.setData('text/plain',id); e.dataTransfer.effectAllowed='move'; setTimeout(()=>{ const c=document.querySelector(`[data-id="${id}"]`); if(c) c.classList.add('dragging'); },0); }
+function dEnd(){ document.querySelectorAll('.card.dragging').forEach(c=>c.classList.remove('dragging')); document.querySelectorAll('.col-body.drag-over').forEach(c=>c.classList.remove('drag-over')); dragId=null; }
+function dOver(e){ e.preventDefault(); e.dataTransfer.dropEffect='move'; e.currentTarget.classList.add('drag-over'); }
+function dLeave(e){ if(!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drag-over'); }
+function dDrop(e,stage){ e.preventDefault(); e.currentTarget.classList.remove('drag-over'); const id=e.dataTransfer.getData('text/plain')||dragId; if(!id) return; const l=S.leads.find(x=>x.id===id); if(!l||l.stage===stage) return; moveLead(id,stage); notify(`${l.salonName} → ${slbl(stage)}`); }
+
+// ═══════════════════════════════════════════════════════════
+// VIEWS
+// ═══════════════════════════════════════════════════════════
+function switchView(v) {
+  curView=v;
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('act'));
+  document.querySelectorAll('.hnav-btn').forEach(b=>b.classList.remove('act'));
+  const views = ['board','termin','todo'];
+  const idx = views.indexOf(v);
+  const viewIds = ['vBoard','vTermin','vTodo'];
+  if (idx>=0) { document.getElementById(viewIds[idx]).classList.add('act'); document.querySelectorAll('.hnav-btn')[idx].classList.add('act'); }
+
+  // Show KPI bar only on board view
+  const kpiBar = document.getElementById('kpiBar');
+  const mainEl = document.querySelector('.main');
+  if (v === 'board') {
+    kpiBar.style.display = 'flex';
+    mainEl.style.top = 'calc(var(--hh) + var(--kh))';
+  } else {
+    kpiBar.style.display = 'none';
+    mainEl.style.top = 'var(--hh)';
+  }
+
+  if(v==='board') renderBoard();
+  else if(v==='termin') renderTermin();
+  else if(v==='todo') renderTodo();
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════════
+const openModal = id => document.getElementById(id).classList.add('open');
+const closeModal = id => document.getElementById(id).classList.remove('open');
+
+document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.ov.open').forEach(m=>m.classList.remove('open')); });
+
+function stageChanged(val) {
+  document.getElementById('revenueField').style.display = val==='gewonnen' ? 'block' : 'none';
+}
+
+function openAddLead(stage='leads') {
+  document.getElementById('eId').value='';
+  document.getElementById('mLeadTitle').textContent='Lead hinzufügen';
+  document.getElementById('mSaveBtn').textContent='Hinzufügen';
+  document.getElementById('mDeleteBtn').style.display='none';
+  clearForm(); document.getElementById('fStage').value=stage;
+  stageChanged(stage);
+  openModal('mLead');
+}
+
+function openEdit(id) {
+  const l=S.leads.find(x=>x.id===id); if(!l) return;
+  document.getElementById('eId').value=id;
+  document.getElementById('mLeadTitle').textContent=l.salonName;
+  document.getElementById('mSaveBtn').textContent='Speichern';
+  document.getElementById('mDeleteBtn').style.display='inline-flex';
+  fillForm(l); openModal('mLead');
+}
+
+function deleteCurrentLead() {
+  const id = document.getElementById('eId').value;
+  const l = S.leads.find(x=>x.id===id);
+  if (!l) return;
+  if (!confirm(`"${l.salonName}" wirklich löschen?`)) return;
+  S.leads = S.leads.filter(x=>x.id!==id);
+  saveS(); closeModal('mLead'); renderAll();
+  notify(`${l.salonName} gelöscht`);
+}
+
+function clearForm() {
+  ['fName','fAddr','fPhone','fSite','fBeta','fRating','fPitch','fNotes','fRevenue'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fStage').value='leads';
+  document.getElementById('fBranche').value='';
+  document.getElementById('fAssignee').value='';
+  document.getElementById('fAnbieter').value='Jimdo';
+  document.getElementById('revenueField').style.display='none';
+}
+
+function fillForm(l) {
+  document.getElementById('fName').value=l.salonName||'';
+  document.getElementById('fBranche').value=l.branche||'';
+  document.getElementById('fAddr').value=l.address||'';
+  document.getElementById('fPhone').value=l.phone||'';
+  document.getElementById('fSite').value=l.currentWebsite||'';
+  document.getElementById('fBeta').value=l.betaUrl||'';
+  document.getElementById('fRating').value=l.googleRating||'';
+  document.getElementById('fPitch').value=l.pitchDate||'';
+  document.getElementById('fStage').value=l.stage||'leads';
+  document.getElementById('fAnbieter').value=l.anbieter||'Anderer Anbieter';
+  document.getElementById('fNotes').value=l.notes||'';
+  document.getElementById('fRevenue').value=l.revenue||'';
+  document.getElementById('fAssignee').value=l.assignee||'';
+  stageChanged(l.stage);
+}
+
+function saveLead() {
+  const name=document.getElementById('fName').value.trim();
+  if(!name){ notify('Salon-Name fehlt','err'); return; }
+  const d={
+    salonName:name, branche:document.getElementById('fBranche').value,
+    address:document.getElementById('fAddr').value.trim(),
+    phone:document.getElementById('fPhone').value.trim(),
+    currentWebsite:document.getElementById('fSite').value.trim(),
+    betaUrl:document.getElementById('fBeta').value.trim(),
+    anbieter:document.getElementById('fAnbieter').value,
+    googleRating:parseFloat(document.getElementById('fRating').value)||0,
+    pitchDate:document.getElementById('fPitch').value||null,
+    stage:document.getElementById('fStage').value,
+    assignee:document.getElementById('fAssignee').value,
+    notes:document.getElementById('fNotes').value.trim(),
+    revenue:parseInt(document.getElementById('fRevenue').value)||0,
+  };
+  const id=document.getElementById('eId').value;
+  if(id){ updateLead(id,d); notify(`${name} aktualisiert`); }
+  else { addLead(d); notify(`${name} hinzugefügt`); }
+  closeModal('mLead'); renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════
+// IMPORT
+// ═══════════════════════════════════════════════════════════
+function openImport() { openModal('mImport'); }
+
+async function importFromServer() {
+  const st=document.getElementById('iStatus');
+  st.textContent='Lade…'; st.style.color='var(--text-2)';
+  try {
+    const r=await fetch('/leads_import.json?_='+Date.now());
+    if(!r.ok) throw new Error(`HTTP ${r.status} — Datei nicht gefunden`);
+    const data=await r.json();
+    const {added,dupes}=procImport(data);
+    st.textContent=`✓ ${added} neue Leads · ${dupes} bereits vorhanden`; st.style.color='var(--green)';
+    renderAll(); notify(`${added} neue Leads importiert`);
+  } catch(e) { st.textContent=`Fehler: ${e.message}`; st.style.color='var(--red)'; }
+}
+
+function importJson() {
+  const raw=document.getElementById('iJson').value.trim(); if(!raw) return;
+  let data; try { data=JSON.parse(raw); } catch { document.getElementById('iStatus').textContent='Ungültiges JSON'; return; }
+  if(!Array.isArray(data)){ document.getElementById('iStatus').textContent='Erwartet ein Array'; return; }
+  const {added,dupes}=procImport(data);
+  document.getElementById('iStatus').textContent=`✓ ${added} neu · ${dupes} Duplikate`; document.getElementById('iStatus').style.color='var(--green)';
+  renderAll(); notify(`${added} neue Leads importiert`);
+}
+
+function procImport(data) {
+  let added=0,dupes=0;
+  data.forEach(item=>{
+    const name=(item.salonName||item.Name||'').trim();
+    const addr=(item.address||item.Adresse||'').trim();
+    if(!name) return;
+    if(S.leads.find(l=>l.salonName.toLowerCase()===name.toLowerCase()&&l.address.toLowerCase()===addr.toLowerCase())){ dupes++; return; }
+    addLead({ salonName:name, branche:item.branche||item.Branche||'Friseur', address:addr, phone:item.phone||item.Telefon||'', currentWebsite:item.currentWebsite||item.Website||'', anbieter:item.anbieter||item.Anbieter||'Anderer Anbieter', googleRating:parseFloat(item.googleRating||item['Google Bewertung'])||0, reviewCount:parseInt(item.reviewCount||item['Anzahl Bewertungen'])||0, stage:'leads', addedDate:item.importDate||td() });
+    added++;
+  });
+  return {added,dupes};
+}
+
+// ═══════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════
+function switchStab(btn, pane) {
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('act'));
+  document.querySelectorAll('.s-pane').forEach(p=>p.classList.remove('act'));
+  btn.classList.add('act');
+  document.getElementById(pane).classList.add('act');
+}
+
+let _settingsGoalScope = 'woche';
+
+function setScope(sc) {
+  S.cfg.scope = sc; saveS(); renderAll();
+}
+
+function switchGoalScope(btn, sc) {
+  _settingsGoalScope = sc;
+  document.querySelectorAll('.scope-sub-tab').forEach(b=>b.classList.remove('act'));
+  btn.classList.add('act');
+  renderGoalList();
+}
+
+function renderGoalList() {
+  const v = S.cfg.kpiVisible;
+  const G = S.cfg.scopeGoals[_settingsGoalScope] || DEFAULT_GOALS[_settingsGoalScope];
+  const scopeLbl = _settingsGoalScope==='woche'?'Woche':_settingsGoalScope==='jahr'?'Jahr':'Monat';
+  document.getElementById('kpiToggleList').innerHTML = ALL_KPIS.map(k=>`
+    <div class="kpi-toggle">
+      <input type="checkbox" class="kpi-toggle-cb" data-kpi="${k.id}" ${v[k.id]!==false?'checked':''}>
+      <div class="kpi-toggle-info">
+        <div class="kpi-toggle-lbl">${k.lbl}</div>
+        <div class="kpi-toggle-desc">${k.desc}</div>
+      </div>
+      ${k.goalKey ? `<div class="kpi-toggle-goal"><label>${scopeLbl}sziel</label><input type="number" data-goal="${k.goalKey}" value="${G[k.goalKey]||''}" min="0" step="${k.goalUnit==='€'?100:1}"></div>` : ''}
+    </div>`).join('');
+}
+
+function openSettings() {
+  _settingsGoalScope = S.cfg.scope || 'monat';
+  document.querySelectorAll('.scope-sub-tab').forEach((b,i)=>{
+    const scopes=['woche','monat','jahr'];
+    b.classList.toggle('act', scopes[i]===_settingsGoalScope);
+  });
+  renderGoalList();
+  openModal('mSettings');
+}
+
+function saveSettings() {
+  document.querySelectorAll('[data-kpi]').forEach(cb=>{
+    S.cfg.kpiVisible[cb.dataset.kpi] = cb.checked;
+  });
+  if (!S.cfg.scopeGoals[_settingsGoalScope]) S.cfg.scopeGoals[_settingsGoalScope] = {};
+  document.querySelectorAll('[data-goal]').forEach(inp=>{
+    const v = parseInt(inp.value);
+    if (!isNaN(v) && v>0) S.cfg.scopeGoals[_settingsGoalScope][inp.dataset.goal] = v;
+  });
+  saveS(); closeModal('mSettings'); renderAll(); notify('Einstellungen gespeichert');
+}
+
+function handleSearch(q) { srchQ=q; renderBoard(); }
+
+// ═══════════════════════════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════════════════════════
+function renderAll() {
+  renderKPIs();
+  if(curView==='board') renderBoard();
+  else if(curView==='termin') renderTermin();
+  else if(curView==='todo') renderTodo();
+}
+
+// ═══════════════════════════════════════════════════════════
+// ROUTENPLANER
+// ═══════════════════════════════════════════════════════════
+function openRouteMap() {
+  const tls = [...S.leads.filter(l=>l.stage==='termin' && l.address && l.address.trim())]
+    .sort((a,b)=>{ if(!a.pitchDate) return 1; if(!b.pitchDate) return -1; return a.pitchDate.localeCompare(b.pitchDate); });
+
+  if (!tls.length) { notify('Keine Termine mit Adressen', 'err'); return; }
+
+  // Optimize route by PLZ (good geographic proxy for Hamburg)
+  const optimized = optimizeRouteByPLZ(tls);
+
+  // Build Google Maps URL with all waypoints
+  const addrs = optimized.map(l => encodeURIComponent(l.address + ', Hamburg, Deutschland'));
+  let url;
+  if (addrs.length === 1) {
+    url = `https://www.google.com/maps/search/?api=1&query=${addrs[0]}`;
+  } else {
+    // Google Maps directions: origin/waypoints/destination
+    const origin = addrs[0];
+    const dest = addrs[addrs.length - 1];
+    const waypoints = addrs.slice(1, -1).join('|');
+    url = `https://www.google.com/maps/dir/${addrs.join('/')}`;
+  }
+
+  // Show route preview modal
+  showRoutePreview(optimized, url);
+}
+
+function optimizeRouteByPLZ(appointments) {
+  if (appointments.length <= 2) return appointments;
+  // Sort by postal code as geographic proxy for Hamburg
+  return [...appointments].sort((a,b) => {
+    const plzA = (a.address.match(/\b\d{5}\b/)||['99999'])[0];
+    const plzB = (b.address.match(/\b\d{5}\b/)||['99999'])[0];
+    return plzA.localeCompare(plzB);
+  });
+}
+
+function showRoutePreview(appointments, mapsUrl) {
+  const modal = document.getElementById('mRoute');
+  const body = document.getElementById('mRouteBody');
+
+  body.innerHTML = `
+    <p style="font-size:12.5px;color:var(--text-2);margin-bottom:14px;">Optimierte Reihenfolge nach Stadtgebiet (PLZ-basiert). Klicke auf Google Maps öffnen für die genaue Navigation.</p>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
+      ${appointments.map((l,i)=>`
+        <div style="display:flex;align-items:flex-start;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-s);padding:9px 11px;">
+          <div style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--f-m);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;">${i+1}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:var(--f-d);font-weight:700;font-size:12.5px;color:var(--text);">${esc(l.salonName)}</div>
+            ${l.address?`<div style="font-size:11px;color:var(--text-2);margin-top:2px;">${esc(l.address)}</div>`:''}
+            ${l.pitchDate?`<div style="font-family:var(--f-m);font-size:10px;color:var(--accent);margin-top:2px;">${fmtD(l.pitchDate)}</div>`:''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <button class="btn btn-p" style="width:100%;justify-content:center;" onclick="window.open('${mapsUrl}','_blank')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+      In Google Maps öffnen
+    </button>
+  `;
+
+  openModal('mRoute');
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+(async () => {
+  document.getElementById('kpiBar').style.display = 'flex';
+  document.querySelector('.main').style.top = 'calc(var(--hh) + var(--kh))';
+
+  await loadS();
+  renderAll();
+
+  // Realtime: Änderungen des Kollegen sofort sehen
+  sb.channel('crm-sync')
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'crm_state'
+    }, payload => {
+      if (payload.new?.data) {
+        migrateState(payload.new.data);
+        renderAll();
+        setSyncStatus('synced');
+      }
+    })
+    .subscribe(status => {
+      if (status === 'SUBSCRIBED') setSyncStatus('synced');
+    });
+})();
+</script>
+</body>
+</html>
