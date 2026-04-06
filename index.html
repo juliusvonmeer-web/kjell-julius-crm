@@ -802,55 +802,40 @@ function migrateState(saved) {
   });
 }
 
+let _syncReady = false; // Kein Save nach Supabase bevor loadS() abgeschlossen ist
+
 async function loadS() {
-  // 1. Zuerst localStorage als Fallback laden (Migration)
+  // 1. localStorage nur als lokaler Migrationspfad – NICHT als Quelle der Wahrheit
   try {
     const raw = localStorage.getItem('crm_v5');
     if (raw) migrateState(JSON.parse(raw));
   } catch(e) { /* start clean */ }
 
-  // 2. Supabase laden (überschreibt localStorage wenn Daten vorhanden)
+  // 2. Supabase ist die einzige Quelle der Wahrheit
   try {
-    const { data, error } = await sb.from('crm_state').select('data').eq('id','main').single();
+    const { data } = await sb.from('crm_state').select('data').eq('id','main').single();
     if (data?.data) {
-      migrateState(data.data);
+      migrateState(data.data); // Überschreibt localStorage-Stand immer
     } else {
-      // Erster Start: lokale Daten zu Supabase hochladen
+      // Absolut erster Start (leere DB): aktuellen Stand hochladen
       await sb.from('crm_state').upsert({ id:'main', data: S, updated_at: new Date().toISOString() });
     }
     setSyncStatus('synced');
   } catch(e) {
     setSyncStatus('offline');
+    // Offline: kein Supabase-Sync erlauben, damit kein veralteter Stand hochgeladen wird
+    return; // _syncReady bleibt false
   }
 
-  // 3. Seed-Leads (nur wenn noch nicht vorhanden)
-  const seedLeads = [
-    { salonName:'Hairdresser Bünning', currentWebsite:'https://www.hairdresser-bünning.de/', branche:'Friseur' },
-    { salonName:'Blumen Häcks',        currentWebsite:'https://www.blumenhaecks.de/',        branche:'' },
-    { salonName:'Atelier Küch',        currentWebsite:'http://www.atelier-kuech.de/',         branche:'' },
-    { salonName:'TimeArt',             currentWebsite:'https://www.time-art.net/',             branche:'' },
-  ];
-  for (const d of seedLeads) {
-    if (!S.leads.some(l=>l.currentWebsite===d.currentWebsite)) {
-      S.leads.push({
-        id: Date.now().toString(36)+Math.random().toString(36).slice(2,7),
-        salonName:d.salonName, branche:d.branche,
-        address:'', phone:'', currentWebsite:d.currentWebsite,
-        anbieter:'Anderer Anbieter', googleRating:0, reviewCount:0,
-        betaUrl:'', stage:'leads', addedDate:td(),
-        stageHistory:[{stage:'leads',date:td(),kw:getKW()}],
-        pitchDate:null, notes:'',
-        estimatedValue:S.cfg?.val||1200, revenue:0,
-      });
-    }
-  }
+  _syncReady = true; // Ab jetzt darf saveS() nach Supabase schreiben
 }
 
 let _saveTimer = null;
 function saveS() {
-  // Lokal sofort speichern (Backup)
+  // Immer lokal sichern
   localStorage.setItem('crm_v5', JSON.stringify(S));
-  // Supabase debounced (600ms)
+  // Supabase nur wenn loadS() erfolgreich war – verhindert Überschreiben mit veraltetem Stand
+  if (!_syncReady) return;
   clearTimeout(_saveTimer);
   setSyncStatus('saving');
   _saveTimer = setTimeout(async () => {
