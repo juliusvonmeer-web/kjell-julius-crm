@@ -665,7 +665,7 @@ select {
         <div class="div" style="margin-top:14px;"></div>
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span style="font-size:12px;color:var(--text-3);">Alle Leads löschen</span>
-          <button class="btn btn-danger btn-sm" onclick="if(confirm('Wirklich alle Leads löschen?')){S.leads=[];saveS();renderAll();closeModal('mSettings');notify('Daten gelöscht');}">Reset</button>
+          <button class="btn btn-danger btn-sm" onclick="const input=prompt('Zum Bestätigen bitte &quot;LÖSCHEN&quot; eintippen:');if(input==='LÖSCHEN'){S.leads=[];saveS();renderAll();closeModal('mSettings');notify('Alle Leads gelöscht');}else if(input!==null){alert('Abgebrochen – Eingabe war nicht korrekt.');}">Reset</button>
         </div>
       </div>
     </div>
