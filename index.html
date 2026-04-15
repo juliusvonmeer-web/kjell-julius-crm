@@ -565,23 +565,28 @@ select {
   <div class="modal">
     <div class="m-hdr">
       <div class="m-title" id="mPitchTitle">Eintrag hinzufügen</div>
+      <div class="pd-asg-toggle" role="group" aria-label="Bearbeitet von" style="display:inline-flex;gap:0;border-radius:6px;background:rgba(0,0,0,0.05);padding:2px;margin-left:auto;margin-right:10px;">
+        <button type="button" id="pdAsgJulius" class="pd-asg-btn" onclick="pdSetAssignee('julius')" style="padding:3px 10px;border-radius:4px;font-size:11px;font-weight:500;border:0;background:transparent;cursor:pointer;color:var(--text-2);">Julius</button>
+        <button type="button" id="pdAsgKjell"  class="pd-asg-btn" onclick="pdSetAssignee('kjell')"  style="padding:3px 10px;border-radius:4px;font-size:11px;font-weight:500;border:0;background:transparent;cursor:pointer;color:var(--text-2);">Kjell</button>
+      </div>
+      <input type="hidden" id="pdAssignee" value="">
       <button class="m-close" onclick="closeModal('mPitch')">×</button>
     </div>
     <div class="m-body">
       <input type="hidden" id="pdId">
+
+      <!-- CORE -->
       <div class="fg"><label>Name *</label><input type="text" id="pdName" placeholder="z.B. Blumenwiese"></div>
-      <div class="fg"><label>Gesprächsaufhänger</label><input type="text" id="pdAngle" placeholder="z.B. 100 Jahre Familienbetrieb, markantes Schaufenster…"></div>
-      <div class="fg"><label>Bearbeitet von</label>
-        <select id="pdAssignee">
-          <option value="">— niemand —</option>
-          <option value="julius">Julius</option>
-          <option value="kjell">Kjell</option>
-        </select>
-      </div>
       <div class="fr">
-        <div class="fg"><label>Adresse</label><input type="text" id="pdAddr" placeholder="Straße Hausnr., PLZ Hamburg"></div>
-        <div class="fg"><label>Telefon</label><input type="tel" id="pdPhone" placeholder="040 123456"></div>
+        <div class="fg"><label>Typ</label><input type="text" id="pdType" placeholder="z.B. Friseur, Blumen, Schmuck…"></div>
+        <div class="fg"><label>Inhaber*in</label><input type="text" id="pdOwner" placeholder="z.B. Frau Meier"></div>
       </div>
+      <div class="fg"><label>Gesprächsaufhänger</label><input type="text" id="pdAngle" placeholder="z.B. 100 Jahre Familienbetrieb, markantes Schaufenster…"></div>
+
+      <!-- DETAILS -->
+      <div class="div" style="margin:16px 0 8px;"></div>
+      <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Details</div>
+      <div class="fg"><label>Adresse</label><input type="text" id="pdAddr" placeholder="Straße Hausnr., PLZ Hamburg"></div>
       <div class="fr">
         <div class="fg"><label>Anbieter (aktuelle Site)</label>
           <select id="pdAnbieter">
@@ -609,7 +614,11 @@ select {
           <option value="visited">Went In</option>
         </select>
       </div>
-      <div class="fg"><label>Notizen (während/nach Besuch)</label><textarea id="pdNotes" placeholder="Was ist passiert? Nächster Schritt?" rows="5"></textarea></div>
+
+      <!-- NOTES -->
+      <div class="div" style="margin:16px 0 8px;"></div>
+      <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Notizen</div>
+      <div class="fg"><textarea id="pdNotes" placeholder="Was ist passiert? Nächster Schritt?" rows="6"></textarea></div>
     </div>
     <div class="m-foot">
       <button class="btn btn-danger btn-sm" id="pdDeleteBtn" style="display:none;margin-right:auto;" onclick="deletePitchItem()">
@@ -1018,6 +1027,8 @@ function pdCard(i, stageId) {
   const days = since(i.addedDate || td());
   const dl = days === 0 ? 'Heute' : days === 1 ? 'Gestern' : `${days}d`;
   const angle = (i.convoAngle || '').trim();
+  const type = (i.businessType || '').trim();
+  const owner = (i.ownerName || '').trim();
   const hasSite = (i.siteUrl || '').length > 4;
   const hasIg = (i.igUrl || '').length > 4;
   const notePreview = stageId === 'visited' ? (i.notes || '').trim() : '';
@@ -1033,6 +1044,7 @@ function pdCard(i, stageId) {
         <div class="card-day">${dl}</div>
       </div>
     </div>
+    ${(type || owner) ? `<div class="card-row" style="font-size:11px;color:var(--text-2);margin-top:2px;">${type ? esc(type) : ''}${type && owner ? ' · ' : ''}${owner ? esc(owner) : ''}</div>` : ''}
     ${angle ? `<div class="card-angle" title="${esc(angle)}">💬 ${esc(angle)}</div>` : ''}
     ${(i.anbieter || i.googleRating || i.siteNote || i.igNote) ? `<div class="card-badges">
       ${i.anbieter ? `<span class="badge ${bdgCls(i.anbieter)}">${esc(i.anbieter)}</span>` : ''}
@@ -1043,7 +1055,6 @@ function pdCard(i, stageId) {
     ${hasSite ? `<a class="card-web" href="${esc(i.siteUrl)}" target="_blank" onclick="event.stopPropagation()"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>${esc(hostname(i.siteUrl))}</a>` : ''}
     ${hasIg ? `<a class="card-web" href="${esc(i.igUrl)}" target="_blank" onclick="event.stopPropagation()">📸 ${esc(hostname(i.igUrl))}</a>` : ''}
     ${i.address ? `<div class="card-row" style="font-size:11px;color:var(--text-2);margin-top:4px;">📍 ${esc(i.address)}</div>` : ''}
-    ${i.phone ? `<div class="card-row" style="font-size:11px;color:var(--text-2);font-family:var(--f-m);">📞 ${esc(i.phone)}</div>` : ''}
     ${notePreview ? `<div class="card-row" style="font-size:11px;color:var(--text-2);margin-top:6px;white-space:normal;line-height:1.45;">${esc(notePreview.slice(0, 160))}${notePreview.length > 160 ? '…' : ''}</div>` : ''}
   </div>`;
 }
@@ -1068,13 +1079,32 @@ function pdDrop(ev, stage) {
   renderPitchday();
 }
 
+function pdSetAssignee(who) {
+  const cur = document.getElementById('pdAssignee').value;
+  const next = cur === who ? '' : who;
+  document.getElementById('pdAssignee').value = next;
+  pdRenderAssigneeToggle();
+}
+
+function pdRenderAssigneeToggle() {
+  const val = document.getElementById('pdAssignee').value;
+  const jBtn = document.getElementById('pdAsgJulius');
+  const kBtn = document.getElementById('pdAsgKjell');
+  const jActive = val === 'julius';
+  const kActive = val === 'kjell';
+  jBtn.style.background = jActive ? '#2B6CB0' : 'transparent';
+  jBtn.style.color      = jActive ? '#fff'    : 'var(--text-2)';
+  kBtn.style.background = kActive ? '#2D9558' : 'transparent';
+  kBtn.style.color      = kActive ? '#fff'    : 'var(--text-2)';
+}
+
 function openPitchItem(id, defaultStage = 'pool') {
   document.getElementById('pdId').value = id || '';
   document.getElementById('mPitchTitle').textContent = id ? 'Eintrag bearbeiten' : 'Eintrag hinzufügen';
   document.getElementById('pdSaveBtn').textContent = id ? 'Speichern' : 'Hinzufügen';
   document.getElementById('pdDeleteBtn').style.display = id ? 'inline-flex' : 'none';
 
-  const fields = ['pdName','pdAngle','pdAddr','pdPhone','pdSite','pdSiteNote','pdIg','pdIgNote','pdRating','pdNotes'];
+  const fields = ['pdName','pdType','pdOwner','pdAngle','pdAddr','pdSite','pdSiteNote','pdIg','pdIgNote','pdRating','pdNotes'];
   fields.forEach(f => document.getElementById(f).value = '');
   document.getElementById('pdStage').value = defaultStage;
   document.getElementById('pdAssignee').value = '';
@@ -1084,12 +1114,13 @@ function openPitchItem(id, defaultStage = 'pool') {
     const it = (S.pitchDay.items || []).find(x => x.id === id);
     if (it) {
       document.getElementById('pdName').value     = it.name || '';
+      document.getElementById('pdType').value     = it.businessType || '';
+      document.getElementById('pdOwner').value    = it.ownerName || '';
       document.getElementById('pdAngle').value    = it.convoAngle || '';
       document.getElementById('pdAssignee').value = it.assignee || '';
       document.getElementById('pdAnbieter').value = it.anbieter || '';
       document.getElementById('pdRating').value   = it.googleRating || '';
       document.getElementById('pdAddr').value     = it.address || '';
-      document.getElementById('pdPhone').value    = it.phone || '';
       document.getElementById('pdSite').value     = it.siteUrl || '';
       document.getElementById('pdSiteNote').value = it.siteNote || '';
       document.getElementById('pdIg').value       = it.igUrl || '';
@@ -1098,6 +1129,7 @@ function openPitchItem(id, defaultStage = 'pool') {
       document.getElementById('pdStage').value    = it.stage || 'pool';
     }
   }
+  pdRenderAssigneeToggle();
   openModal('mPitch');
   setTimeout(() => document.getElementById('pdName').focus(), 80);
 }
@@ -1108,12 +1140,13 @@ function savePitchItem() {
   const id = document.getElementById('pdId').value;
   const payload = {
     name,
+    businessType: document.getElementById('pdType').value.trim(),
+    ownerName:    document.getElementById('pdOwner').value.trim(),
     convoAngle:   document.getElementById('pdAngle').value.trim(),
     assignee:     document.getElementById('pdAssignee').value,
     anbieter:     document.getElementById('pdAnbieter').value,
     googleRating: parseFloat(document.getElementById('pdRating').value) || 0,
     address:      document.getElementById('pdAddr').value.trim(),
-    phone:        document.getElementById('pdPhone').value.trim(),
     siteUrl:      document.getElementById('pdSite').value.trim(),
     siteNote:     document.getElementById('pdSiteNote').value.trim(),
     igUrl:        document.getElementById('pdIg').value.trim(),
