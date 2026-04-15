@@ -457,7 +457,8 @@ select {
   <div class="logo">Kjell <span style="color:var(--accent);margin:0 1px;">&amp;</span> Julius</div>
   <div id="syncDot" class="sync-dot offline" title="Verbinde…"></div>
   <nav class="hnav">
-    <button class="hnav-btn act" onclick="switchView('board')">Kanban Board</button>
+    <button class="hnav-btn act" onclick="switchView('pitchday')">Pitch Day</button>
+    <button class="hnav-btn" onclick="switchView('board')">Kanban Board</button>
     <button class="hnav-btn" onclick="switchView('termin')">Termine</button>
     <button class="hnav-btn" onclick="switchView('todo')">To-Do</button>
   </nav>
@@ -473,7 +474,7 @@ select {
     <button class="btn-ghost" onclick="openSettings()" title="Einstellungen">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
     </button>
-    <button class="btn btn-p btn-sm" onclick="openAddLead('pool')">
+    <button class="btn btn-p btn-sm" onclick="curView==='pitchday' ? openPitchItem(null,'pool') : openAddLead('pool')">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Lead hinzufügen
     </button>
@@ -483,8 +484,13 @@ select {
 
 <!-- MAIN -->
 <main class="main">
+  <!-- PITCH DAY VIEW (default) -->
+  <div class="view act" id="vPitchday">
+    <div class="kanban" id="pdBoard"></div>
+  </div>
+
   <!-- BOARD VIEW -->
-  <div class="view act" id="vBoard">
+  <div class="view" id="vBoard">
     <div class="kanban" id="kanban"></div>
   </div>
 
@@ -550,6 +556,49 @@ select {
 </main>
 
 <!-- MODAL: LEAD -->
+<!-- MODAL: PITCH DAY ITEM -->
+<div class="ov" id="mPitch">
+  <div class="modal">
+    <div class="m-hdr">
+      <div class="m-title" id="mPitchTitle">Eintrag hinzufügen</div>
+      <button class="m-close" onclick="closeModal('mPitch')">×</button>
+    </div>
+    <div class="m-body">
+      <input type="hidden" id="pdId">
+      <div class="fg"><label>Name *</label><input type="text" id="pdName" placeholder="z.B. Blumenwiese"></div>
+      <div class="fg"><label>Gesprächsaufhänger</label><input type="text" id="pdAngle" placeholder="z.B. 100 Jahre Familienbetrieb, markantes Schaufenster…"></div>
+      <div class="fr">
+        <div class="fg"><label>Adresse</label><input type="text" id="pdAddr" placeholder="Straße Hausnr., PLZ Hamburg"></div>
+        <div class="fg"><label>Telefon</label><input type="tel" id="pdPhone" placeholder="040 123456"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Website URL</label><input type="url" id="pdSite" placeholder="https://…"></div>
+        <div class="fg"><label>Website Zustand</label><input type="text" id="pdSiteNote" placeholder="z.B. zuletzt 2018, Jimdo-Template"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Instagram URL</label><input type="url" id="pdIg" placeholder="https://instagram.com/…"></div>
+        <div class="fg"><label>Instagram Zustand</label><input type="text" id="pdIgNote" placeholder="z.B. letzter Post 3 Wochen her"></div>
+      </div>
+      <div class="fg"><label>Stage</label>
+        <select id="pdStage">
+          <option value="pool">Pool</option>
+          <option value="prepped">Info Ready</option>
+          <option value="visited">Went In</option>
+        </select>
+      </div>
+      <div class="fg"><label>Notizen (während/nach Besuch)</label><textarea id="pdNotes" placeholder="Was ist passiert? Nächster Schritt?" rows="5"></textarea></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-danger btn-sm" id="pdDeleteBtn" style="display:none;margin-right:auto;" onclick="deletePitchItem()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Löschen
+      </button>
+      <button class="btn btn-g" onclick="closeModal('mPitch')">Abbrechen</button>
+      <button class="btn btn-p" id="pdSaveBtn" onclick="savePitchItem()">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <div class="ov" id="mLead">
   <div class="modal">
     <div class="m-hdr">
@@ -732,8 +781,15 @@ const DEFAULT_GOALS = {
   monat: { leadsToday:40, betasBuilt:7, termWk:3, closeRate:30, wonMo:2, pipeVal:15000, revenue:5000  },
   jahr:  { leadsToday:400,betasBuilt:50,termWk:30,closeRate:30, wonMo:20,pipeVal:50000, revenue:50000 },
 };
+const PD_STAGES = [
+  { id:'pool',    label:'Pool',       clr:'#3D7CC4', icon:'⚡' },
+  { id:'prepped', label:'Info Ready', clr:'#B48210', icon:'📋' },
+  { id:'visited', label:'Went In',    clr:'#059669', icon:'✓'  },
+];
+
 let S = {
   leads: [],
+  pitchDay: { items: [] },
   todos: [],
   cfg: {
     val: 1500,
@@ -742,7 +798,8 @@ let S = {
     scopeGoals: JSON.parse(JSON.stringify(DEFAULT_GOALS)),
   },
 };
-let srchQ = '', curView = 'board';
+let srchQ = '', curView = 'pitchday';
+let pdDragId = null;
 let dragId = null;
 let calY = new Date().getFullYear(), calM = new Date().getMonth();
 
@@ -789,6 +846,8 @@ function migrateState(saved) {
   S = { ...S, ...saved };
   if (!S.cfg.kpiVisible) S.cfg.kpiVisible = { leadsToday:true, betasBuilt:true, termWk:true, closeRate:true, wonMo:true, pipeVal:true, revenue:true, imAufbau:false, avgDays:false };
   if (!S.todos) S.todos = [];
+  if (!S.pitchDay) S.pitchDay = { items: [] };
+  if (!S.pitchDay.items) S.pitchDay.items = [];
   if (!S.cfg.scope) S.cfg.scope = 'monat';
   if (!S.cfg.scopeGoals) {
     const old = S.cfg.kpiGoals || {};
@@ -908,6 +967,141 @@ function archiveLead(id) {
   }
   updateLead(id, { stage:'archived', archiveReason:normalized });
   renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════
+// PITCH DAY
+// ═══════════════════════════════════════════════════════════
+
+function renderPitchday() {
+  const html = PD_STAGES.map(st => {
+    const its = (S.pitchDay?.items || []).filter(i => (i.stage || 'pool') === st.id);
+    return `<div class="col" style="--col-clr:${st.clr}">
+      <div class="col-hdr">
+        <span class="col-title">${st.icon} ${st.label}</span>
+        <span class="col-cnt">${its.length}</span>
+        <button class="col-add" onclick="openPitchItem(null,'${st.id}')" title="+">+</button>
+      </div>
+      <div class="col-body" data-pd-stage="${st.id}"
+        ondragover="dOver(event)" ondragleave="dLeave(event)" ondrop="pdDrop(event,'${st.id}')">
+        ${its.length ? its.map(i => pdCard(i, st.id)).join('') : `<div class="col-empty">Noch leer</div>`}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('pdBoard').innerHTML = html;
+}
+
+function pdCard(i, stageId) {
+  const angle = (i.convoAngle || '').trim();
+  const showDetails = stageId === 'prepped' || stageId === 'visited';
+  const notePreview = stageId === 'visited' ? (i.notes || '').trim() : '';
+
+  return `<div class="card" draggable="true" data-pd-id="${i.id}"
+    onclick="openPitchItem('${i.id}')"
+    ondragstart="pdDStart(event,'${i.id}')"
+    ondragend="dEnd(event)">
+    <div class="card-top">
+      <div class="card-name">${esc(i.name)}</div>
+    </div>
+    ${angle ? `<div class="card-angle" title="${esc(angle)}">💬 ${esc(angle)}</div>` : ''}
+    ${showDetails && i.address ? `<div class="card-row" style="font-size:11px;color:var(--text-2);margin-top:4px;">📍 ${esc(i.address)}</div>` : ''}
+    ${showDetails && i.phone ? `<div class="card-row" style="font-size:11px;color:var(--text-2);font-family:var(--f-m);">📞 ${esc(i.phone)}</div>` : ''}
+    ${showDetails && i.siteUrl ? `<a class="card-web" href="${esc(i.siteUrl)}" target="_blank" onclick="event.stopPropagation()">🌐 ${esc(hostname(i.siteUrl))}${i.siteNote ? ` · ${esc(i.siteNote)}` : ''}</a>` : ''}
+    ${showDetails && i.igUrl ? `<a class="card-web" href="${esc(i.igUrl)}" target="_blank" onclick="event.stopPropagation()">📸 Instagram${i.igNote ? ` · ${esc(i.igNote)}` : ''}</a>` : ''}
+    ${notePreview ? `<div class="card-row" style="font-size:11px;color:var(--text-2);margin-top:6px;white-space:normal;line-height:1.45;">${esc(notePreview.slice(0, 160))}${notePreview.length > 160 ? '…' : ''}</div>` : ''}
+  </div>`;
+}
+
+function pdDStart(ev, id) {
+  pdDragId = id;
+  ev.target.classList.add('dragging');
+  ev.dataTransfer.effectAllowed = 'move';
+}
+
+function pdDrop(ev, stage) {
+  ev.preventDefault();
+  document.querySelectorAll('.col-body.drag-over').forEach(c => c.classList.remove('drag-over'));
+  if (!pdDragId) return;
+  const it = (S.pitchDay.items || []).find(x => x.id === pdDragId);
+  if (!it) { pdDragId = null; return; }
+  if (it.stage !== stage) {
+    it.stage = stage;
+    saveS();
+  }
+  pdDragId = null;
+  renderPitchday();
+}
+
+function openPitchItem(id, defaultStage = 'pool') {
+  document.getElementById('pdId').value = id || '';
+  document.getElementById('mPitchTitle').textContent = id ? 'Eintrag bearbeiten' : 'Eintrag hinzufügen';
+  document.getElementById('pdSaveBtn').textContent = id ? 'Speichern' : 'Hinzufügen';
+  document.getElementById('pdDeleteBtn').style.display = id ? 'inline-flex' : 'none';
+
+  const fields = ['pdName','pdAngle','pdAddr','pdPhone','pdSite','pdSiteNote','pdIg','pdIgNote','pdNotes'];
+  fields.forEach(f => document.getElementById(f).value = '');
+  document.getElementById('pdStage').value = defaultStage;
+
+  if (id) {
+    const it = (S.pitchDay.items || []).find(x => x.id === id);
+    if (it) {
+      document.getElementById('pdName').value     = it.name || '';
+      document.getElementById('pdAngle').value    = it.convoAngle || '';
+      document.getElementById('pdAddr').value     = it.address || '';
+      document.getElementById('pdPhone').value    = it.phone || '';
+      document.getElementById('pdSite').value     = it.siteUrl || '';
+      document.getElementById('pdSiteNote').value = it.siteNote || '';
+      document.getElementById('pdIg').value       = it.igUrl || '';
+      document.getElementById('pdIgNote').value   = it.igNote || '';
+      document.getElementById('pdNotes').value    = it.notes || '';
+      document.getElementById('pdStage').value    = it.stage || 'pool';
+    }
+  }
+  openModal('mPitch');
+  setTimeout(() => document.getElementById('pdName').focus(), 80);
+}
+
+function savePitchItem() {
+  const name = document.getElementById('pdName').value.trim();
+  if (!name) { notify('Name fehlt', 'err'); return; }
+  const id = document.getElementById('pdId').value;
+  const payload = {
+    name,
+    convoAngle: document.getElementById('pdAngle').value.trim(),
+    address:    document.getElementById('pdAddr').value.trim(),
+    phone:      document.getElementById('pdPhone').value.trim(),
+    siteUrl:    document.getElementById('pdSite').value.trim(),
+    siteNote:   document.getElementById('pdSiteNote').value.trim(),
+    igUrl:      document.getElementById('pdIg').value.trim(),
+    igNote:     document.getElementById('pdIgNote').value.trim(),
+    notes:      document.getElementById('pdNotes').value.trim(),
+    stage:      document.getElementById('pdStage').value || 'pool',
+  };
+  if (!S.pitchDay) S.pitchDay = { items: [] };
+  if (!S.pitchDay.items) S.pitchDay.items = [];
+  if (id) {
+    const i = S.pitchDay.items.findIndex(x => x.id === id);
+    if (i >= 0) S.pitchDay.items[i] = { ...S.pitchDay.items[i], ...payload };
+  } else {
+    S.pitchDay.items.push({ id: uid(), addedDate: td(), ...payload });
+  }
+  saveS();
+  closeModal('mPitch');
+  renderPitchday();
+  notify(id ? `${name} aktualisiert` : `${name} hinzugefügt`);
+}
+
+function deletePitchItem() {
+  const id = document.getElementById('pdId').value;
+  if (!id) return;
+  const it = (S.pitchDay.items || []).find(x => x.id === id);
+  if (!it) return;
+  if (!confirm(`"${it.name}" wirklich löschen?`)) return;
+  S.pitchDay.items = S.pitchDay.items.filter(x => x.id !== id);
+  saveS();
+  closeModal('mPitch');
+  renderPitchday();
+  notify(`${it.name} gelöscht`);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1279,12 +1473,13 @@ function switchView(v) {
   curView=v;
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('act'));
   document.querySelectorAll('.hnav-btn').forEach(b=>b.classList.remove('act'));
-  const views = ['board','termin','todo'];
+  const views = ['pitchday','board','termin','todo'];
   const idx = views.indexOf(v);
-  const viewIds = ['vBoard','vTermin','vTodo'];
+  const viewIds = ['vPitchday','vBoard','vTermin','vTodo'];
   if (idx>=0) { document.getElementById(viewIds[idx]).classList.add('act'); document.querySelectorAll('.hnav-btn')[idx].classList.add('act'); }
 
-  if(v==='board') renderBoard();
+  if(v==='pitchday') renderPitchday();
+  else if(v==='board') renderBoard();
   else if(v==='termin') renderTermin();
   else if(v==='todo') renderTodo();
 }
@@ -1499,7 +1694,8 @@ function handleSearch(q) { srchQ=q; renderBoard(); }
 // RENDER ALL
 // ═══════════════════════════════════════════════════════════
 function renderAll() {
-  if(curView==='board') renderBoard();
+  if(curView==='pitchday') renderPitchday();
+  else if(curView==='board') renderBoard();
   else if(curView==='termin') renderTermin();
   else if(curView==='todo') renderTodo();
 }
