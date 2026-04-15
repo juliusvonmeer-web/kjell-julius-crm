@@ -567,9 +567,28 @@ select {
       <input type="hidden" id="pdId">
       <div class="fg"><label>Name *</label><input type="text" id="pdName" placeholder="z.B. Blumenwiese"></div>
       <div class="fg"><label>Gesprächsaufhänger</label><input type="text" id="pdAngle" placeholder="z.B. 100 Jahre Familienbetrieb, markantes Schaufenster…"></div>
+      <div class="fg"><label>Bearbeitet von</label>
+        <select id="pdAssignee">
+          <option value="">— niemand —</option>
+          <option value="julius">Julius</option>
+          <option value="kjell">Kjell</option>
+        </select>
+      </div>
       <div class="fr">
         <div class="fg"><label>Adresse</label><input type="text" id="pdAddr" placeholder="Straße Hausnr., PLZ Hamburg"></div>
         <div class="fg"><label>Telefon</label><input type="tel" id="pdPhone" placeholder="040 123456"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Anbieter (aktuelle Site)</label>
+          <select id="pdAnbieter">
+            <option value="">— unbekannt —</option>
+            <option>Jimdo</option><option>IONOS</option><option>Strato</option>
+            <option>Wix</option><option>Squarespace</option>
+            <option value="Anderer Anbieter">Anderer Anbieter</option>
+            <option value="Keine Website">Keine Website</option>
+          </select>
+        </div>
+        <div class="fg"><label>Google Bewertung</label><input type="number" id="pdRating" placeholder="4.5" min="1" max="5" step="0.1"></div>
       </div>
       <div class="fr">
         <div class="fg"><label>Website URL</label><input type="url" id="pdSite" placeholder="https://…"></div>
@@ -992,8 +1011,11 @@ function renderPitchday() {
 }
 
 function pdCard(i, stageId) {
+  const days = since(i.addedDate || td());
+  const dl = days === 0 ? 'Heute' : days === 1 ? 'Gestern' : `${days}d`;
   const angle = (i.convoAngle || '').trim();
-  const showDetails = stageId === 'prepped' || stageId === 'visited';
+  const hasSite = (i.siteUrl || '').length > 4;
+  const hasIg = (i.igUrl || '').length > 4;
   const notePreview = stageId === 'visited' ? (i.notes || '').trim() : '';
 
   return `<div class="card" draggable="true" data-pd-id="${i.id}"
@@ -1002,12 +1024,22 @@ function pdCard(i, stageId) {
     ondragend="dEnd(event)">
     <div class="card-top">
       <div class="card-name">${esc(i.name)}</div>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+        ${i.assignee==='julius'?'<span class="assignee-dot" style="background:#2B6CB0;" title="Julius">J</span>':i.assignee==='kjell'?'<span class="assignee-dot" style="background:#2D9558;" title="Kjell">K</span>':''}
+        <div class="card-day">${dl}</div>
+      </div>
     </div>
     ${angle ? `<div class="card-angle" title="${esc(angle)}">💬 ${esc(angle)}</div>` : ''}
-    ${showDetails && i.address ? `<div class="card-row" style="font-size:11px;color:var(--text-2);margin-top:4px;">📍 ${esc(i.address)}</div>` : ''}
-    ${showDetails && i.phone ? `<div class="card-row" style="font-size:11px;color:var(--text-2);font-family:var(--f-m);">📞 ${esc(i.phone)}</div>` : ''}
-    ${showDetails && i.siteUrl ? `<a class="card-web" href="${esc(i.siteUrl)}" target="_blank" onclick="event.stopPropagation()">🌐 ${esc(hostname(i.siteUrl))}${i.siteNote ? ` · ${esc(i.siteNote)}` : ''}</a>` : ''}
-    ${showDetails && i.igUrl ? `<a class="card-web" href="${esc(i.igUrl)}" target="_blank" onclick="event.stopPropagation()">📸 Instagram${i.igNote ? ` · ${esc(i.igNote)}` : ''}</a>` : ''}
+    ${(i.anbieter || i.googleRating || i.siteNote || i.igNote) ? `<div class="card-badges">
+      ${i.anbieter ? `<span class="badge ${bdgCls(i.anbieter)}">${esc(i.anbieter)}</span>` : ''}
+      ${i.googleRating ? `<span class="badge" style="background:rgba(110,231,183,0.08);color:#6EE7B7;">★ ${i.googleRating}</span>` : ''}
+      ${i.siteNote ? `<span class="badge" style="background:rgba(180,130,10,0.12);color:#B48210;" title="Website: ${esc(i.siteNote)}">🌐 ${esc(i.siteNote)}</span>` : ''}
+      ${i.igNote ? `<span class="badge" style="background:rgba(124,58,237,0.10);color:#7C3AED;" title="Instagram: ${esc(i.igNote)}">📸 ${esc(i.igNote)}</span>` : ''}
+    </div>` : ''}
+    ${hasSite ? `<a class="card-web" href="${esc(i.siteUrl)}" target="_blank" onclick="event.stopPropagation()"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>${esc(hostname(i.siteUrl))}</a>` : ''}
+    ${hasIg ? `<a class="card-web" href="${esc(i.igUrl)}" target="_blank" onclick="event.stopPropagation()">📸 ${esc(hostname(i.igUrl))}</a>` : ''}
+    ${i.address ? `<div class="card-row" style="font-size:11px;color:var(--text-2);margin-top:4px;">📍 ${esc(i.address)}</div>` : ''}
+    ${i.phone ? `<div class="card-row" style="font-size:11px;color:var(--text-2);font-family:var(--f-m);">📞 ${esc(i.phone)}</div>` : ''}
     ${notePreview ? `<div class="card-row" style="font-size:11px;color:var(--text-2);margin-top:6px;white-space:normal;line-height:1.45;">${esc(notePreview.slice(0, 160))}${notePreview.length > 160 ? '…' : ''}</div>` : ''}
   </div>`;
 }
@@ -1038,15 +1070,20 @@ function openPitchItem(id, defaultStage = 'pool') {
   document.getElementById('pdSaveBtn').textContent = id ? 'Speichern' : 'Hinzufügen';
   document.getElementById('pdDeleteBtn').style.display = id ? 'inline-flex' : 'none';
 
-  const fields = ['pdName','pdAngle','pdAddr','pdPhone','pdSite','pdSiteNote','pdIg','pdIgNote','pdNotes'];
+  const fields = ['pdName','pdAngle','pdAddr','pdPhone','pdSite','pdSiteNote','pdIg','pdIgNote','pdRating','pdNotes'];
   fields.forEach(f => document.getElementById(f).value = '');
   document.getElementById('pdStage').value = defaultStage;
+  document.getElementById('pdAssignee').value = '';
+  document.getElementById('pdAnbieter').value = '';
 
   if (id) {
     const it = (S.pitchDay.items || []).find(x => x.id === id);
     if (it) {
       document.getElementById('pdName').value     = it.name || '';
       document.getElementById('pdAngle').value    = it.convoAngle || '';
+      document.getElementById('pdAssignee').value = it.assignee || '';
+      document.getElementById('pdAnbieter').value = it.anbieter || '';
+      document.getElementById('pdRating').value   = it.googleRating || '';
       document.getElementById('pdAddr').value     = it.address || '';
       document.getElementById('pdPhone').value    = it.phone || '';
       document.getElementById('pdSite').value     = it.siteUrl || '';
@@ -1067,15 +1104,18 @@ function savePitchItem() {
   const id = document.getElementById('pdId').value;
   const payload = {
     name,
-    convoAngle: document.getElementById('pdAngle').value.trim(),
-    address:    document.getElementById('pdAddr').value.trim(),
-    phone:      document.getElementById('pdPhone').value.trim(),
-    siteUrl:    document.getElementById('pdSite').value.trim(),
-    siteNote:   document.getElementById('pdSiteNote').value.trim(),
-    igUrl:      document.getElementById('pdIg').value.trim(),
-    igNote:     document.getElementById('pdIgNote').value.trim(),
-    notes:      document.getElementById('pdNotes').value.trim(),
-    stage:      document.getElementById('pdStage').value || 'pool',
+    convoAngle:   document.getElementById('pdAngle').value.trim(),
+    assignee:     document.getElementById('pdAssignee').value,
+    anbieter:     document.getElementById('pdAnbieter').value,
+    googleRating: parseFloat(document.getElementById('pdRating').value) || 0,
+    address:      document.getElementById('pdAddr').value.trim(),
+    phone:        document.getElementById('pdPhone').value.trim(),
+    siteUrl:      document.getElementById('pdSite').value.trim(),
+    siteNote:     document.getElementById('pdSiteNote').value.trim(),
+    igUrl:        document.getElementById('pdIg').value.trim(),
+    igNote:       document.getElementById('pdIgNote').value.trim(),
+    notes:        document.getElementById('pdNotes').value.trim(),
+    stage:        document.getElementById('pdStage').value || 'pool',
   };
   if (!S.pitchDay) S.pitchDay = { items: [] };
   if (!S.pitchDay.items) S.pitchDay.items = [];
