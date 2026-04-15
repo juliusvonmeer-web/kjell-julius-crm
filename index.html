@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>CRM Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -455,6 +458,7 @@ select {
 <!-- HEADER -->
 <header class="hdr">
   <div class="logo">Kjell <span style="color:var(--accent);margin:0 1px;">&amp;</span> Julius</div>
+  <div id="buildId" class="mono" style="font-size:10px;color:var(--text-3);margin-left:8px;opacity:.6;" title="Cache-Check">…</div>
   <div id="syncDot" class="sync-dot offline" title="Verbinde…"></div>
   <nav class="hnav">
     <button class="hnav-btn act" onclick="switchView('pitchday')">Pitch Day</button>
@@ -1809,6 +1813,32 @@ function showRoutePreview(appointments, mapsUrl) {
 // ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
+// Auto-update: if the HTML on the server is newer than this cached copy,
+// reload silently. Runs on window focus and every 60s.
+const __MY_BUILD_MS = new Date(document.lastModified).getTime();
+(() => {
+  const d = new Date(__MY_BUILD_MS);
+  const el = document.getElementById('buildId');
+  if (el) el.textContent =
+    `v ${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+})();
+async function __checkForUpdate() {
+  try {
+    const res = await fetch(location.pathname + '?_v=' + Date.now(), {
+      method: 'HEAD',
+      cache: 'no-store',
+    });
+    const lm = res.headers.get('last-modified');
+    if (!lm) return;
+    const serverMs = new Date(lm).getTime();
+    if (serverMs - __MY_BUILD_MS > 1500) {
+      location.reload();
+    }
+  } catch(e) { /* offline, ignore */ }
+}
+window.addEventListener('focus', __checkForUpdate);
+setInterval(__checkForUpdate, 60_000);
+
 (async () => {
   await loadS();
   renderAll();
