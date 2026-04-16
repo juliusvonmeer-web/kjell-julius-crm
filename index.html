@@ -570,6 +570,11 @@ select {
         <button type="button" id="pdAsgKjell"  class="pd-asg-btn" onclick="pdSetAssignee('kjell')"  style="padding:3px 10px;border-radius:4px;font-size:11px;font-weight:500;border:0;background:transparent;cursor:pointer;color:var(--text-2);">Kjell</button>
       </div>
       <input type="hidden" id="pdAssignee" value="">
+      <div role="group" aria-label="Deal-Typ" style="display:inline-flex;gap:0;border-radius:6px;background:rgba(0,0,0,0.05);padding:2px;margin-right:10px;">
+        <button type="button" id="pdDealSeed" onclick="pdSetDealType('seed')" style="padding:3px 10px;border-radius:4px;font-size:11px;font-weight:500;border:0;background:transparent;cursor:pointer;color:var(--text-2);">Seed</button>
+        <button type="button" id="pdDealCash" onclick="pdSetDealType('cash')" style="padding:3px 10px;border-radius:4px;font-size:11px;font-weight:500;border:0;background:transparent;cursor:pointer;color:var(--text-2);">Cash</button>
+      </div>
+      <input type="hidden" id="pdDealType" value="">
       <button class="m-close" onclick="closeModal('mPitch')">×</button>
     </div>
     <div class="m-body">
@@ -581,12 +586,22 @@ select {
         <div class="fg"><label>Typ</label><input type="text" id="pdType" placeholder="z.B. Friseur, Blumen, Schmuck…"></div>
         <div class="fg"><label>Inhaber*in</label><input type="text" id="pdOwner" placeholder="z.B. Frau Meier"></div>
       </div>
-      <div class="fg"><label>Gesprächsaufhänger</label><input type="text" id="pdAngle" placeholder="z.B. 100 Jahre Familienbetrieb, markantes Schaufenster…"></div>
+      <div class="fg"><label>Assets</label><input type="text" id="pdAssets" placeholder="z.B. Logo, Fotos, Videos…"></div>
+
+      <!-- NOTIZEN -->
+      <div class="div" style="margin:16px 0 8px;"></div>
+      <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Notizen</div>
+      <div class="fg"><textarea id="pdNotes" placeholder="Was ist passiert? Nächster Schritt?" rows="6"></textarea></div>
 
       <!-- DETAILS -->
       <div class="div" style="margin:16px 0 8px;"></div>
       <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Details</div>
       <div class="fg"><label>Adresse</label><input type="text" id="pdAddr" placeholder="Straße Hausnr., PLZ Hamburg"></div>
+      <div class="fr">
+        <div class="fg"><label>Website URL</label><input type="url" id="pdSite" placeholder="https://…"></div>
+        <div class="fg"><label>Website Zustand</label><input type="text" id="pdSiteNote" placeholder="z.B. zuletzt 2018, Jimdo-Template"></div>
+      </div>
+      <div class="fg"><label>Gesprächsaufhänger</label><input type="text" id="pdAngle" placeholder="z.B. 100 Jahre Familienbetrieb, markantes Schaufenster…"></div>
       <div class="fr">
         <div class="fg"><label>Anbieter (aktuelle Site)</label>
           <select id="pdAnbieter">
@@ -600,10 +615,6 @@ select {
         <div class="fg"><label>Google Bewertung</label><input type="number" id="pdRating" placeholder="4.5" min="1" max="5" step="0.1"></div>
       </div>
       <div class="fr">
-        <div class="fg"><label>Website URL</label><input type="url" id="pdSite" placeholder="https://…"></div>
-        <div class="fg"><label>Website Zustand</label><input type="text" id="pdSiteNote" placeholder="z.B. zuletzt 2018, Jimdo-Template"></div>
-      </div>
-      <div class="fr">
         <div class="fg"><label>Instagram URL</label><input type="url" id="pdIg" placeholder="https://instagram.com/…"></div>
         <div class="fg"><label>Instagram Zustand</label><input type="text" id="pdIgNote" placeholder="z.B. letzter Post 3 Wochen her"></div>
       </div>
@@ -614,11 +625,6 @@ select {
           <option value="visited">Went In</option>
         </select>
       </div>
-
-      <!-- NOTES -->
-      <div class="div" style="margin:16px 0 8px;"></div>
-      <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Notizen</div>
-      <div class="fg"><textarea id="pdNotes" placeholder="Was ist passiert? Nächster Schritt?" rows="6"></textarea></div>
     </div>
     <div class="m-foot">
       <button class="btn btn-danger btn-sm" id="pdDeleteBtn" style="display:none;margin-right:auto;" onclick="deletePitchItem()">
@@ -1033,10 +1039,14 @@ function pdCard(i, stageId) {
   const hasIg = (i.igUrl || '').length > 4;
   const notePreview = stageId === 'visited' ? (i.notes || '').trim() : '';
 
+  const dtBg = i.dealType === 'seed' ? 'rgba(45,149,88,0.18)' : i.dealType === 'cash' ? 'rgba(43,108,176,0.18)' : '';
+  const dtBorder = i.dealType === 'seed' ? '3px solid #2D9558' : i.dealType === 'cash' ? '3px solid #2B6CB0' : '';
+
   return `<div class="card" draggable="true" data-pd-id="${i.id}"
     onclick="openPitchItem('${i.id}')"
     ondragstart="pdDStart(event,'${i.id}')"
-    ondragend="dEnd(event)">
+    ondragend="dEnd(event)"
+    ${dtBg ? `style="background:${dtBg};border-left:${dtBorder};"` : ''}>
     <div class="card-top">
       <div class="card-name">${esc(i.name)}</div>
       <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
@@ -1098,16 +1108,36 @@ function pdRenderAssigneeToggle() {
   kBtn.style.color      = kActive ? '#fff'    : 'var(--text-2)';
 }
 
+function pdSetDealType(type) {
+  const cur = document.getElementById('pdDealType').value;
+  const next = cur === type ? '' : type;
+  document.getElementById('pdDealType').value = next;
+  pdRenderDealToggle();
+}
+
+function pdRenderDealToggle() {
+  const val = document.getElementById('pdDealType').value;
+  const seedBtn = document.getElementById('pdDealSeed');
+  const cashBtn = document.getElementById('pdDealCash');
+  const seedActive = val === 'seed';
+  const cashActive = val === 'cash';
+  seedBtn.style.background = seedActive ? '#2D9558' : 'transparent';
+  seedBtn.style.color      = seedActive ? '#fff'    : 'var(--text-2)';
+  cashBtn.style.background = cashActive ? '#2B6CB0' : 'transparent';
+  cashBtn.style.color      = cashActive ? '#fff'    : 'var(--text-2)';
+}
+
 function openPitchItem(id, defaultStage = 'pool') {
   document.getElementById('pdId').value = id || '';
   document.getElementById('mPitchTitle').textContent = id ? 'Eintrag bearbeiten' : 'Eintrag hinzufügen';
   document.getElementById('pdSaveBtn').textContent = id ? 'Speichern' : 'Hinzufügen';
   document.getElementById('pdDeleteBtn').style.display = id ? 'inline-flex' : 'none';
 
-  const fields = ['pdName','pdType','pdOwner','pdAngle','pdAddr','pdSite','pdSiteNote','pdIg','pdIgNote','pdRating','pdNotes'];
+  const fields = ['pdName','pdType','pdOwner','pdAssets','pdAngle','pdAddr','pdSite','pdSiteNote','pdIg','pdIgNote','pdRating','pdNotes'];
   fields.forEach(f => document.getElementById(f).value = '');
   document.getElementById('pdStage').value = defaultStage;
   document.getElementById('pdAssignee').value = '';
+  document.getElementById('pdDealType').value = '';
   document.getElementById('pdAnbieter').value = '';
 
   if (id) {
@@ -1116,8 +1146,10 @@ function openPitchItem(id, defaultStage = 'pool') {
       document.getElementById('pdName').value     = it.name || '';
       document.getElementById('pdType').value     = it.businessType || '';
       document.getElementById('pdOwner').value    = it.ownerName || '';
+      document.getElementById('pdAssets').value   = it.assets || '';
       document.getElementById('pdAngle').value    = it.convoAngle || '';
       document.getElementById('pdAssignee').value = it.assignee || '';
+      document.getElementById('pdDealType').value = it.dealType || '';
       document.getElementById('pdAnbieter').value = it.anbieter || '';
       document.getElementById('pdRating').value   = it.googleRating || '';
       document.getElementById('pdAddr').value     = it.address || '';
@@ -1130,6 +1162,7 @@ function openPitchItem(id, defaultStage = 'pool') {
     }
   }
   pdRenderAssigneeToggle();
+  pdRenderDealToggle();
   openModal('mPitch');
   setTimeout(() => document.getElementById('pdName').focus(), 80);
 }
@@ -1142,8 +1175,10 @@ function savePitchItem() {
     name,
     businessType: document.getElementById('pdType').value.trim(),
     ownerName:    document.getElementById('pdOwner').value.trim(),
+    assets:       document.getElementById('pdAssets').value.trim(),
     convoAngle:   document.getElementById('pdAngle').value.trim(),
     assignee:     document.getElementById('pdAssignee').value,
+    dealType:     document.getElementById('pdDealType').value,
     anbieter:     document.getElementById('pdAnbieter').value,
     googleRating: parseFloat(document.getElementById('pdRating').value) || 0,
     address:      document.getElementById('pdAddr').value.trim(),
